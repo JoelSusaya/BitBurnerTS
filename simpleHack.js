@@ -8,6 +8,13 @@ export async function main(ns) {
 		const TARGET_SERVER = ns.args[0];
 		const SCRIPT_NAME = "simpleHack.js";
 
+		// Program names
+		const NUKE 		= "NUKE.exe";
+		const AUTO_LINK = "AutoLink.exe";
+		const BRUTE_SSH = "BruteSSH.exe";
+
+		const MAX_OPEN_PORTS = 1;
+
 		// For tracking our hacking level
 		let hackingLevel;
 
@@ -15,6 +22,14 @@ export async function main(ns) {
 		let minSecruityLevel;
 		let maxMoney;
 		let securityDecrease;
+
+		let openPorts = 0;
+		let portsRequired;
+
+		// For checking avialble programs on the system
+		let hasNuke;
+		let hasAutoLink;
+		let hasBruteSSH;
 
 		// We will want to keep track of how much money is available on the server as well as the security level.
 		let moneyAvailable;
@@ -39,7 +54,7 @@ export async function main(ns) {
 		// Try to replenish funding when it falls below 85%, but I'm not sure
 		// if max money means max money ever, or just a funding cap on the machine.
 		// At the end of each loop, check the hacking level, and update our security decrease value t
-		while (moneyAvailable > maxMoney * 0.1) {
+		while (moneyAvailable > maxMoney * 0.1 && moneyAvailable > 0) {
 			await ns.hack(TARGET_SERVER);
 
 			if (moneyAvailable < maxMoney * 0.85) {
@@ -58,7 +73,8 @@ export async function main(ns) {
 
 		// If we cannot continuously grow money, then we will eventually kill the script when the
 		// funding drops
-		kill(SCRIPT_NAME);
+		ns.tprint("ERROR: No money to hack.");
+		ns.kill(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
 
 		// Initialize by getting the min security level and max money so we can manage those
 		// Also check how much weaken will affect the target, so we can determine how often to run it
@@ -69,11 +85,35 @@ export async function main(ns) {
 			maxMoney 			= ns.getServerMaxMoney(			TARGET_SERVER);
 			moneyAvailable 		= ns.getServerMoneyAvailable(	TARGET_SERVER);
 
+			openPorts 			= ns.getS
+			portsRequired		= ns.getServerNumPortsRequired(	TARGET_SERVER);
+
 			hackingLevel 		= ns.getHackingLevel();
 
-			// Nuke the server if we don't have root access.
+			// Check which programs are available on this computer
+			hasNuke 	= ns.fileExists(NUKE, HOST_SERVER);
+			hasAutoLink = ns.fileExists(AUTO_LINK, HOST_SERVER);
+			hasBruteSSH = ns.fileExists(BRUTE_SSH, HOST_SERVER);
+
+			// Check if we have root, if we don't see if we can get it
+			// Kill the script if we can't open enough ports
 			if (!ns.hasRootAccess(TARGET_SERVER)) {
-				ns.nuke(TARGET_SERVER);
+				if (portsRequired > 0) {
+					if (hasBruteSSH) {
+						ns.brutessh(TARGET_SERVER);
+						nuke();
+					}
+					else {
+						ns.tprint("ERROR: Missing BruteSSH.exe");
+					}
+				}
+				else if (portsRequired > MAX_OPEN_PORTS) {
+					ns.tprint("ERROR: Cannot open enough ports")
+					ns.kill(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
+				}
+				else {
+					nuke();
+				}
 			}
 
 			ns.tail(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
@@ -94,6 +134,16 @@ export async function main(ns) {
 		function hackingLeveledUp_(newLevel) {
 			securityDecrease = ns.weakenAnalyze(TARGET_SERVER);
 			hackingLevel = newLevel;
+		}
+
+		function nuke() {
+			if (hasNuke) {
+				ns.nuke(TARGET_SERVER);
+			}
+			else {
+				ns.tprint("ERROR: missing NUKE.exe");
+				ns.kill(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
+			}
 		}
 	}
 
