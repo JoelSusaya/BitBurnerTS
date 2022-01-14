@@ -60,3 +60,39 @@ If you keep things strict, you'll need to handle args carefully, because args ha
 ```
 
 Declare a variable of the type you want, check to see if the argument is the right type, then assign it to your variable.
+
+### Import Modules
+
+In order to import compiled modules, a bit of tomfoolery is required. In the tsconfig.json, we need the following:
+
+```json
+    "compilerOptions": {
+      ...
+      "outDir": "js",
+      "paths": {
+          "js/*": ["ts/*"]
+      }
+    }
+    "include": [
+      "types/**/*.d.ts",
+      "ts/**/*"
+    ]
+```
+
+The include section tells the compiler where to look for ts files. The paths section tells the compiler that if it sees a /js/* path while compiling, to treat it as a /ts/* path. Then in our TypeScript file, we can use:
+
+```ts
+import { CONSTANTS  }   from "js/common/constants";
+```
+
+to import
+
+```ts
+export class CONSTANTS {
+    static readonly SCRIPT_DIRECTORY = "js/";
+}
+```
+
+This will allow the game to properly call the right import file while still compiling properly. I have seen other solutions as well. 
+
+The reason this seems to hapen with my configuration is that the relative pathing gets messed up. If I run js/simpleHack.js, the ./common/constants path will not work, but a path from the base directory will work.
