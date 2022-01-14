@@ -1,12 +1,11 @@
 import { CONSTANTS } from "js/common/constants";
-import { SERVERS } from "js/common/servers";
 import { PROGRAMS } from "js/common/programs";
 export async function main(ns) {
     // Wrapping everything in a function to keep the variables from entering the global scope.
     async function simpleHack() {
         /* CONSTANTS */
         // For now, this only runs on the home server
-        const HOST_SERVER = SERVERS.HOME_SERVER;
+        const HOST_SERVER = ns.getHostname();
         // Name of file
         const SCRIPT_NAME = CONSTANTS.SCRIPT_DIRECTORY + "simpleHack.js";
         let arg0 = "";

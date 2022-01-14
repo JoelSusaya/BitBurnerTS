@@ -1,7 +1,6 @@
 import { NS         }   from "../types/NetscriptDefinitions";
-import { CONSTANTS } from "js/common/constants";
-import { SERVERS } from "js/common/servers";   
-import { PROGRAMS } from "js/common/programs";
+import { CONSTANTS  }   from "js/common/constants";
+import { PROGRAMS   }   from "js/common/programs";
 
 export async function main(ns: NS) : Promise<void> {
 
@@ -10,7 +9,7 @@ export async function main(ns: NS) : Promise<void> {
         /* CONSTANTS */
 
         // For now, this only runs on the home server
-		const HOST_SERVER = SERVERS.HOME_SERVER;
+		const HOST_SERVER = ns.getHostname();
 
         // Name of file
 		const SCRIPT_NAME = CONSTANTS.SCRIPT_DIRECTORY + "simpleHack.js";
