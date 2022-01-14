@@ -1,3 +1,8 @@
+/* TODO
+
+1) Read the known hosts file ahead of time and don't overwrite it. In case new hosts are added/discovered.
+
+*/
 export async function main(ns) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
     ns.tail();
@@ -10,7 +15,8 @@ export async function main(ns) {
         // Error Log
         const ERROR_LOG = "logs/errors/crawl-error.txt";
         // Log crawled hosts
-        const CRAWL_LOG = "/logs/crawl.txt";
+        const CRAWL_LOG = "/logs/known-hosts.txt";
+        const CRAWL_REPORT = "/logs/crawl-report.txt";
         /* ARGUMENTS */
         // args[0] - crawl depth
         // Parse the target system from the argument, checking its type to give it a definite type
@@ -33,8 +39,9 @@ export async function main(ns) {
             hostsToScan.push(HOST_SERVER);
             crawledServers.push(HOST_SERVER);
             // Write the depth and host to start the file off
-            await ns.write(CRAWL_LOG, "Depth 0: \n", "w");
-            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "a");
+            await ns.write(CRAWL_REPORT, "Depth 0: \n", "w");
+            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
+            await ns.write(CRAWL_REPORT, HOST_SERVER + "\n", "a");
             ns.print("Initialization complete...");
         }
         async function crawlToDepth(depth) {
@@ -43,7 +50,7 @@ export async function main(ns) {
                 ns.print("Crawling at a depth of " + (currentDepth + 1) + " / " + CRAWL_DEPTH);
                 ns.print("Hosts to scan: " + hostsToScan);
                 // Write the depth we are crawling at in the log. We need to add 1.
-                await ns.write(CRAWL_LOG, "\nDepth " + (currentDepth + 1) + ": \n", "a");
+                await ns.write(CRAWL_REPORT, "\nDepth " + (currentDepth + 1) + ": \n", "a");
                 let newHostsToScan = new Array();
                 while (hostsToScan.length > 0) {
                     let host = hostsToScan.shift();
@@ -54,6 +61,7 @@ export async function main(ns) {
                             newHostsToScan.push(server);
                             crawledServers.push(server);
                             await ns.write(CRAWL_LOG, server + "\n", "a");
+                            await ns.write(CRAWL_REPORT, server + "\n", "a");
                         }
                     }
                 }

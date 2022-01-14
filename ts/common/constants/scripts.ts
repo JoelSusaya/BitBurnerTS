@@ -5,6 +5,8 @@ export class SCRIPTS {
 
     static readonly GAIN_ROOT       = "/js/gainRoot.js";
     static readonly SIMPLE_HACK     = "/js/simpleHack.js";
+    static readonly CRAWL           = "/js/crawl.js";
+    static readonly RUN_KNOWN_HOSTS = "/js/runOnKnownHosts.js";
 
     static all(): string[] {
         let allScripts: string[] = [];
@@ -15,6 +17,8 @@ export class SCRIPTS {
 
         allScripts.push(SCRIPTS.GAIN_ROOT);
         allScripts.push(SCRIPTS.SIMPLE_HACK);
+        allScripts.push(SCRIPTS.CRAWL);
+        allScripts.push(SCRIPTS.RUN_KNOWN_HOSTS);
 
         return allScripts;
     }

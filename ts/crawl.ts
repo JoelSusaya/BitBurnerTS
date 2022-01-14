@@ -1,5 +1,11 @@
 import { NS } from "types/NetscriptDefinitions";
 
+/* TODO
+
+1) Read the known hosts file ahead of time and don't overwrite it. In case new hosts are added/discovered.
+
+*/
+
 export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
     ns.tail();
@@ -16,7 +22,8 @@ export async function main(ns: NS) {
         const ERROR_LOG = "logs/errors/crawl-error.txt";
 
         // Log crawled hosts
-        const CRAWL_LOG = "/logs/crawl.txt";
+        const CRAWL_LOG = "/logs/known-hosts.txt";
+        const CRAWL_REPORT = "/logs/crawl-report.txt";
 
         /* ARGUMENTS */
         // args[0] - crawl depth
@@ -48,8 +55,9 @@ export async function main(ns: NS) {
             crawledServers.push(HOST_SERVER);
 
             // Write the depth and host to start the file off
-            await ns.write(CRAWL_LOG, "Depth 0: \n", "w");
-            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "a");
+            await ns.write(CRAWL_REPORT, "Depth 0: \n", "w");
+            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
+            await ns.write(CRAWL_REPORT, HOST_SERVER + "\n", "a");
 
             ns.print("Initialization complete...");
         }
@@ -61,7 +69,7 @@ export async function main(ns: NS) {
                 ns.print("Hosts to scan: " + hostsToScan);
 
                 // Write the depth we are crawling at in the log. We need to add 1.
-                await ns.write(CRAWL_LOG, "\nDepth " + (currentDepth + 1) + ": \n", "a");
+                await ns.write(CRAWL_REPORT, "\nDepth " + (currentDepth + 1) + ": \n", "a");
 
                 let newHostsToScan: Array<string> = new Array<string>();
 
@@ -76,6 +84,7 @@ export async function main(ns: NS) {
                             newHostsToScan.push(server);
                             crawledServers.push(server);
                             await ns.write(CRAWL_LOG, server + "\n", "a");
+                            await ns.write(CRAWL_REPORT, server + "\n", "a");
                         }
 
                     }

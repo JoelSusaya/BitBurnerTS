@@ -4,7 +4,7 @@ This project contains the files I am writing for playing [Bitburner](https://sto
 
 ## How to use this project
 
-You can copy my repo and just delete the contents of the ts/ and js/ folders, which contain my scripts. You don't want them. Write your own.
+You can copy my repo and just delete the contents of the ts/, js/, and newb/ folders, which contain my scripts. You don't want them. Write your own. You may want to keep template.ts, though.
 
 Leave the types/ folder because it contains the types needed for the game.
 

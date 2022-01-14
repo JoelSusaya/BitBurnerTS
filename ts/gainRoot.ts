@@ -4,7 +4,7 @@ import { PROGRAMS   }   from "js/common/constants/programs";
 
 export async function main(ns: NS) : Promise<void> {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
-    ns.tail();
+    // ns.tail();
     // Function must be async
     async function gainRoot() :Promise<void> {
         /* CONSTANTS */

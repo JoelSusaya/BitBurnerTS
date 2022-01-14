@@ -6,6 +6,8 @@ export class SCRIPTS {
         allScripts.push(SCRIPTS.SERVERS);
         allScripts.push(SCRIPTS.GAIN_ROOT);
         allScripts.push(SCRIPTS.SIMPLE_HACK);
+        allScripts.push(SCRIPTS.CRAWL);
+        allScripts.push(SCRIPTS.RUN_KNOWN_HOSTS);
         return allScripts;
     }
 }
@@ -14,3 +16,5 @@ SCRIPTS.PROGRAMS = "/js/common/constants/programs.js";
 SCRIPTS.SERVERS = "/js/common/constants/servers.js";
 SCRIPTS.GAIN_ROOT = "/js/gainRoot.js";
 SCRIPTS.SIMPLE_HACK = "/js/simpleHack.js";
+SCRIPTS.CRAWL = "/js/crawl.js";
+SCRIPTS.RUN_KNOWN_HOSTS = "/js/runOnKnownHosts.js";

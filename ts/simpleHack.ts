@@ -3,10 +3,11 @@ import { CONSTANTS  }   from "js/common/constants/constants";
 
 export async function main(ns: NS) : Promise<void> {
     // Open a window on screen so we can see our progress
-    ns.tail();
+    //ns.tail();
 	// Wrapping everything in a function to keep the variables from entering the global scope.
 	async function simpleHack() : Promise<void> {
         /* CONSTANTS */
+        const MAX_MONEY_PERCENTAGE_THRESHOLD = 0.5;
 
         // For now, this only runs on the home server
 		const HOST_SERVER = ns.getHostname();
@@ -78,10 +79,10 @@ export async function main(ns: NS) : Promise<void> {
                 while(ns.isRunning("js/gainRoot.js", HOST_SERVER, TARGET_SERVER)) {
                     await ns.sleep(100);
                 }
-            
 
                 if (!ns.hasRootAccess(TARGET_SERVER)) {
                     ns.print("Error: Failed to gain root. Ending hack.");
+                    ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
                 }
 			}
 		}
@@ -93,8 +94,8 @@ export async function main(ns: NS) : Promise<void> {
                 await securityCheck();
             }
 
-            // Grow the money until it is at least 90% of the maximum possible
-            while (moneyAvailable < maxMoney * 0.9) {
+            // Grow the money until it is at least X% of the maximum possible
+            while (moneyAvailable < maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD) {
                 ns.print("Available Money: " + moneyAvailable + " / " + maxMoney);
                 await ns.grow(TARGET_SERVER);
                 await securityCheck();
@@ -110,7 +111,7 @@ export async function main(ns: NS) : Promise<void> {
             while (moneyAvailable > maxMoney * 0.1 && moneyAvailable > 0) {
                 await ns.hack(TARGET_SERVER);
 
-                if (moneyAvailable < maxMoney * 0.85) {
+                if (moneyAvailable < maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD) {
                     await ns.grow(TARGET_SERVER);
                 }
 
@@ -147,24 +148,16 @@ export async function main(ns: NS) : Promise<void> {
 			hackingLevel = newLevel;
 		}
 
-		function nuke() : void {
-			if (hasNuke) {
-				ns.nuke(TARGET_SERVER);
-			}
-			else {
-				ns.print("ERROR: missing NUKE.exe");
-				ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
-			}
-		}
-
         /* EXECUTION */
 
         // Get some of the basic system details and other needed setup
 		await initialize();
 
-        await preHack();
+        if (ns.hasRootAccess(TARGET_SERVER)) {
+            await preHack();
 
-        await continuousHack();
+            await continuousHack();
+        }
 	}
 
 	await simpleHack();
