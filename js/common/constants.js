@@ -1,0 +1,3 @@
+export class CONSTANTS {
+}
+CONSTANTS.SCRIPT_DIRECTORY = "js/";

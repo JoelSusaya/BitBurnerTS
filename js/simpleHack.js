@@ -1,8 +1,14 @@
+import { CONSTANTS } from "js/common/constants";
+import { SERVERS } from "js/common/servers";
+import { PROGRAMS } from "js/common/programs";
 export async function main(ns) {
     // Wrapping everything in a function to keep the variables from entering the global scope.
     async function simpleHack() {
         /* CONSTANTS */
-        const HOST_SERVER = "home";
+        // For now, this only runs on the home server
+        const HOST_SERVER = SERVERS.HOME_SERVER;
+        // Name of file
+        const SCRIPT_NAME = CONSTANTS.SCRIPT_DIRECTORY + "simpleHack.js";
         let arg0 = "";
         // Our target server
         if (typeof (ns.args[0]) == "string") {
@@ -10,16 +16,10 @@ export async function main(ns) {
         }
         else {
             ns.tprint("Error: Argument 0 is not a string!");
+            ns.kill(SCRIPT_NAME, HOST_SERVER, ns.args[0].toString());
         }
         const TARGET_SERVER = arg0;
-        // Name of file
-        const SCRIPT_DIRECTORY = "js/";
-        const SCRIPT_NAME = SCRIPT_DIRECTORY + "simpleHack.js";
         const THREADS = 1;
-        // Program names
-        const NUKE = "NUKE.exe";
-        const AUTO_LINK = "AutoLink.exe";
-        const BRUTE_SSH = "BruteSSH.exe";
         const MAX_OPEN_PORTS = 1;
         /* VARIABLES */
         // For tracking our hacking level
@@ -40,7 +40,7 @@ export async function main(ns) {
         /* Functions */
         // Initialize by getting the min security level and max money so we can manage those
         // Also check how much weaken will affect the target, so we can determine how often to run it
-        function initialize_() {
+        function initialize() {
             // Open a window on screen so we can see our progress
             ns.tail();
             minSecruityLevel = ns.getServerMinSecurityLevel(TARGET_SERVER);
@@ -51,9 +51,9 @@ export async function main(ns) {
             portsRequired = ns.getServerNumPortsRequired(TARGET_SERVER);
             hackingLevel = ns.getHackingLevel();
             // Check which programs are available on this computer
-            hasNuke = ns.fileExists(NUKE, HOST_SERVER);
-            hasAutoLink = ns.fileExists(AUTO_LINK, HOST_SERVER);
-            hasBruteSSH = ns.fileExists(BRUTE_SSH, HOST_SERVER);
+            hasNuke = ns.fileExists(PROGRAMS.NUKE, HOST_SERVER);
+            hasAutoLink = ns.fileExists(PROGRAMS.AUTO_LINK, HOST_SERVER);
+            hasBruteSSH = ns.fileExists(PROGRAMS.BRUTE_SSH, HOST_SERVER);
             // Check if we have root, if we don't see if we can get it
             // Kill the script if we can't open enough ports
             if (!ns.hasRootAccess(TARGET_SERVER)) {
@@ -78,12 +78,12 @@ export async function main(ns) {
         async function preHack() {
             // First we lower the security level before hacking further
             while (securityLevel > minSecruityLevel + securityDecrement) {
-                await securityCheck_();
+                await securityCheck();
             }
             // Grow the money until it is at least 90% of the maximum possible
             while (moneyAvailable < maxMoney * 0.9) {
                 await ns.grow(TARGET_SERVER);
-                await securityCheck_();
+                await securityCheck();
                 moneyAvailable = ns.getServerMoneyAvailable(TARGET_SERVER);
             }
         }
@@ -97,10 +97,10 @@ export async function main(ns) {
                 if (moneyAvailable < maxMoney * 0.85) {
                     await ns.grow(TARGET_SERVER);
                 }
-                await securityCheck_();
+                await securityCheck();
                 let currentHackingLevel = ns.getHackingLevel();
                 if (hackingLevel < currentHackingLevel) {
-                    hackingLeveledUp_(currentHackingLevel);
+                    hackingLeveledUp(currentHackingLevel);
                 }
                 moneyAvailable = ns.getServerMoneyAvailable(TARGET_SERVER);
             }
@@ -112,14 +112,14 @@ export async function main(ns) {
         // Check the security level and weaken it if it gets too high.
         // We can check how much weaken will work, so we will only use weaken if the security level exceeds
         // a threshold defined as the sum of the minimum security level plus the 
-        async function securityCheck_() {
+        async function securityCheck() {
             securityLevel = ns.getServerSecurityLevel(TARGET_SERVER);
             if (securityLevel >= minSecruityLevel + securityDecrement) {
                 await ns.weaken(TARGET_SERVER);
             }
         }
         // Run when our hacking level goes up
-        function hackingLeveledUp_(newLevel) {
+        function hackingLeveledUp(newLevel) {
             securityDecrement = ns.weakenAnalyze(THREADS);
             hackingLevel = newLevel;
         }
@@ -134,7 +134,7 @@ export async function main(ns) {
         }
         /* EXECUTION */
         // Get some of the basic system details and other needed setup
-        initialize_();
+        initialize();
         await preHack();
         await continuousHack();
     }

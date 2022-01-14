@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
-      "module": "ES6",
-      "moduleResolution": "node",
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "module": "ESNext",
       "noImplicitAny": true,
       "noEmitOnError": true,
       "removeComments": false,
@@ -9,6 +10,10 @@
       "target": "ESNext",
       "outDir": "js",
       "strict": true,
+      "baseUrl": ".",
+      "paths": {
+          "js/*": ["ts/*"]
+      }
     },
     "include": [
       "types/**/*.d.ts",
