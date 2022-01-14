@@ -3,11 +3,10 @@ export async function main(ns) {
 
 	// Wrapping everything in a function to keep the variables from entering the global scope.
 	async function simpleHack () {
+		const HOST_SERVER = "home";
 		// Our target server and the name of this file
-		let TARGET_SERVER = ns.args[0];
-		let SCRIPT_NAME = ns.args[0] + ".js";
-
-		print(TARGET_SERVER);
+		const TARGET_SERVER = ns.args[0];
+		const SCRIPT_NAME = "simpleHack.js";
 
 		// For tracking our hacking level
 		let hackingLevel;
@@ -17,11 +16,17 @@ export async function main(ns) {
 		let maxMoney;
 		let securityDecrease;
 
-		// We will want to keep track of how much money is available on the server.
-		let moneyAvailable = ns.getServerMoneyAvailable(TARGET_SERVER);
+		// We will want to keep track of how much money is available on the server as well as the security level.
+		let moneyAvailable;
+		let securityLevel;
 
 		// Get some of the basic system details and other needed setup
 		initialize_();
+
+		// First we lower the security level before hacking further
+		while (securityLevel > minSecruityLevel + securityDecrease) {
+			await securityCheck_();
+		}
 
 		// Grow the money until it is at least 90% of the maximum possible
 		while (moneyAvailable < maxMoney * 0.9) {
@@ -58,18 +63,22 @@ export async function main(ns) {
 		// Initialize by getting the min security level and max money so we can manage those
 		// Also check how much weaken will affect the target, so we can determine how often to run it
 		function initialize_() {
-			minSecruityLevel = ns.getServerMinSecurityLevel(TARGET_SERVER);
-			securityDecrease = ns.weakenAnalyze(TARGET_SERVER);
-			maxMoney = ns.getServerMaxMoney(TARGET_SERVER);
-			hackingLevel = ns.getHackingLevel();
-			ns.tail(SCRIPT_NAME);
+			minSecruityLevel 	= ns.getServerMinSecurityLevel(	TARGET_SERVER);
+			securityLevel 		= ns.getServerSecurityLevel(	TARGET_SERVER);
+			securityDecrease 	= ns.weakenAnalyze(				TARGET_SERVER);
+			maxMoney 			= ns.getServerMaxMoney(			TARGET_SERVER);
+			moneyAvailable 		= ns.getServerMoneyAvailable(	TARGET_SERVER);
+
+			hackingLevel 		= ns.getHackingLevel();
+
+			ns.tail(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
 		}
 
 		// Check the security level and weaken it if it gets too high.
 		// We can check how much weaken will work, so we will only use weaken if the security level exceeds
 		// a threshold defined as the sum of the minimum security level plus the 
 		async function securityCheck_() {
-			let securityLevel = ns.getServerSecurityLevel(TARGET_SERVER);
+			securityLevel = ns.getServerSecurityLevel(TARGET_SERVER);
 			
 			if (securityLevel >= minSecruityLevel + securityDecrease) {
 				await ns.weaken(TARGET_SERVER);
@@ -83,5 +92,5 @@ export async function main(ns) {
 		}
 	}
 
-	simpleHack();
+	await simpleHack();
 }
