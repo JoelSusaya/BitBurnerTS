@@ -1,9 +1,9 @@
 import { NS         }   from "../types/NetscriptDefinitions";
-import { CONSTANTS  }   from "js/common/constants";
-import { PROGRAMS   }   from "js/common/programs";
+import { CONSTANTS  }   from "js/common/constants/constants";
 
 export async function main(ns: NS) : Promise<void> {
-
+    // Open a window on screen so we can see our progress
+    ns.tail();
 	// Wrapping everything in a function to keep the variables from entering the global scope.
 	async function simpleHack() : Promise<void> {
         /* CONSTANTS */
@@ -55,10 +55,7 @@ export async function main(ns: NS) : Promise<void> {
 
 		// Initialize by getting the min security level and max money so we can manage those
 		// Also check how much weaken will affect the target, so we can determine how often to run it
-		function initialize() : void {
-            // Open a window on screen so we can see our progress
-			ns.tail();
-
+		async function initialize() : Promise<void> {
 			minSecruityLevel 	= ns.getServerMinSecurityLevel(	TARGET_SERVER   );
 			securityLevel 		= ns.getServerSecurityLevel(	TARGET_SERVER   );
 			securityDecrement 	= ns.weakenAnalyze(				THREADS         );
@@ -69,41 +66,36 @@ export async function main(ns: NS) : Promise<void> {
 
 			hackingLevel 		= ns.getHackingLevel();
 
-			// Check which programs are available on this computer
-			hasNuke 	= ns.fileExists(PROGRAMS.NUKE, HOST_SERVER);
-			hasAutoLink = ns.fileExists(PROGRAMS.AUTO_LINK, HOST_SERVER);
-			hasBruteSSH = ns.fileExists(PROGRAMS.BRUTE_SSH, HOST_SERVER);
-
 			// Check if we have root, if we don't see if we can get it
 			// Kill the script if we can't open enough ports
 			if (!ns.hasRootAccess(TARGET_SERVER)) {
-				if (portsRequired > 0) {
-					if (hasBruteSSH) {
-						ns.brutessh(TARGET_SERVER);
-						nuke();
-					}
-					else {
-						ns.tprint("ERROR: Missing BruteSSH.exe");
-					}
-				}
-				else if (portsRequired > MAX_OPEN_PORTS) {
-					ns.tprint("ERROR: Cannot open enough ports")
-					ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
-				}
-				else {
-					nuke();
-				}
+				ns.print("Error: Do not have root access. Trying to gain root.");
+                ns.run("js/gainRoot.js", 1, TARGET_SERVER);
+                
+                // Wait for script to start up
+                await ns.sleep(2000);
+                
+                while(ns.isRunning("js/gainRoot.js", HOST_SERVER, TARGET_SERVER)) {
+                    await ns.sleep(100);
+                }
+            
+
+                if (!ns.hasRootAccess(TARGET_SERVER)) {
+                    ns.print("Error: Failed to gain root. Ending hack.");
+                }
 			}
 		}
 
         async function preHack() : Promise<void> {
             // First we lower the security level before hacking further
             while (securityLevel > minSecruityLevel + securityDecrement) {
+                ns.print("Security Level: " + securityLevel + " / " + minSecruityLevel + " + " + securityDecrement);
                 await securityCheck();
             }
 
             // Grow the money until it is at least 90% of the maximum possible
             while (moneyAvailable < maxMoney * 0.9) {
+                ns.print("Available Money: " + moneyAvailable + " / " + maxMoney);
                 await ns.grow(TARGET_SERVER);
                 await securityCheck();
                 moneyAvailable = ns.getServerMoneyAvailable(TARGET_SERVER);
@@ -134,7 +126,7 @@ export async function main(ns: NS) : Promise<void> {
 
             // If we cannot continuously grow money, then we will eventually kill the script when the
             // funding drops
-            ns.tprint("ERROR: No money to hack.");
+            ns.print("ERROR: No money to hack.");
             ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
         }
 
@@ -160,7 +152,7 @@ export async function main(ns: NS) : Promise<void> {
 				ns.nuke(TARGET_SERVER);
 			}
 			else {
-				ns.tprint("ERROR: missing NUKE.exe");
+				ns.print("ERROR: missing NUKE.exe");
 				ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
 			}
 		}
@@ -168,7 +160,7 @@ export async function main(ns: NS) : Promise<void> {
         /* EXECUTION */
 
         // Get some of the basic system details and other needed setup
-		initialize();
+		await initialize();
 
         await preHack();
 

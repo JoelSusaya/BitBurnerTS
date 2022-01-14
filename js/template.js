@@ -4,5 +4,5 @@ export async function main(ns) {
     async function template() {
     }
     // Run the function or it's useless
-    template();
+    await template();
 }

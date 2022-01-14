@@ -1,6 +1,6 @@
 # BitBurnerTS
 
-This project contains the files I am writing for playing [Bitburner](https://store.steampowered.com/app/1812820/Bitburner/). I have configured this project to use TypeScript. 
+This project contains the files I am writing for playing [Bitburner](https://store.steampowered.com/app/1812820/Bitburner/). I have configured this project to use TypeScript. It plays well with the VSCode plugin and API Server of the Steam version of the game.
 
 ## How to use this project
 
