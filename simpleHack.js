@@ -71,6 +71,11 @@ export async function main(ns) {
 
 			hackingLevel 		= ns.getHackingLevel();
 
+			// Nuke the server if we don't have root access.
+			if (!ns.hasRootAccess(TARGET_SERVER)) {
+				ns.nuke(TARGET_SERVER);
+			}
+
 			ns.tail(SCRIPT_NAME, HOST_SERVER, ns.args[0]);
 		}
 
