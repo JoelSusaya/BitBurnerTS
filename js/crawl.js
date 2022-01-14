@@ -32,14 +32,18 @@ export async function main(ns) {
             currentDepth = 0;
             hostsToScan.push(HOST_SERVER);
             crawledServers.push(HOST_SERVER);
-            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
+            // Write the depth and host to start the file off
+            await ns.write(CRAWL_LOG, "Depth 0: \n", "w");
+            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "a");
             ns.print("Initialization complete...");
         }
         async function crawlToDepth(depth) {
             ns.print("Beginning crawl...");
             while (currentDepth < depth) {
-                ns.print("Crawling at a depth of " + currentDepth + " / " + CRAWL_DEPTH);
+                ns.print("Crawling at a depth of " + (currentDepth + 1) + " / " + CRAWL_DEPTH);
                 ns.print("Hosts to scan: " + hostsToScan);
+                // Write the depth we are crawling at in the log. We need to add 1.
+                await ns.write(CRAWL_LOG, "\nDepth " + (currentDepth + 1) + ": \n", "a");
                 let newHostsToScan = new Array();
                 while (hostsToScan.length > 0) {
                     let host = hostsToScan.shift();
@@ -56,7 +60,8 @@ export async function main(ns) {
                 // Copy the new hosts to scan to the hosts to scan so we can scan those hosts
                 hostsToScan = [...newHostsToScan];
                 currentDepth++;
-                ns.print("Current depth crawl complete. \n Depth reached: " + currentDepth + " / " + CRAWL_DEPTH);
+                ns.print("Current depth crawl complete.");
+                ns.print("Hosts scanned: " + crawledServers.length);
             }
         }
         await initialize();
