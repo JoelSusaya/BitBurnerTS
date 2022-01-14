@@ -15,6 +15,7 @@ export async function main(ns: NS) : Promise<void> {
 		const SCRIPT_NAME = ns.getScriptName();
 
         /* ARGUMENTS */
+        // args[0] - Target System to gain root access to
 
         // Parse the target system from the argument, checking its type to give it a definite type
         let arg0 = "";
