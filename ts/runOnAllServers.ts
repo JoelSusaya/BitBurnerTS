@@ -1,5 +1,5 @@
 import { NS } from "types/NetscriptDefinitions";
-import { SCRIPTS } from "./common/constants/scripts";
+import { SCRIPTS } from "js/common/constants/scripts";
 
 export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
@@ -69,8 +69,14 @@ export async function main(ns: NS) {
             for (let server of purchasedServers) {
                 if (SHOULD_KILL) {
                     if (server == HOST_SERVER) {
-                        // LMAO
-                        ns.exec(SCRIPTS.KILL_THEN_INJECT, HOST_SERVER, THREADS, HOST_SERVER, SCRIPT_NAME, THREADS, ...args);
+                        if (purchasedServers.length > 1) {
+                            // LMAO
+                            ns.exec(SCRIPTS.KILL_THEN_INJECT, purchasedServers[1], THREADS, 
+                                HOST_SERVER, SCRIPT_NAME, THREADS, ...args);
+                        }
+                        else {
+                            ns.print("Error: Can't Kill All and execute with only one server! Kill all first, then run with arg[2] = false.")
+                        }
                     }
                     ns.killall(server);
                 }

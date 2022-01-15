@@ -36,7 +36,7 @@ export async function main(ns) {
                     ns.brutessh(TARGET_SERVER);
                 }
                 else {
-                    ns.tprint("Error: Missing BruteSSH, cannot open SSH port.");
+                    ns.print("Error: Missing BruteSSH, cannot open SSH port.");
                 }
             }
             if (!server.ftpPortOpen) {
@@ -44,7 +44,7 @@ export async function main(ns) {
                     ns.ftpcrack(TARGET_SERVER);
                 }
                 else {
-                    ns.tprint("Error: Missing FTPCrack, cannot open SSH port.");
+                    ns.print("Error: Missing FTPCrack, cannot open SSH port.");
                 }
             }
             // Get server again to update data
@@ -55,16 +55,16 @@ export async function main(ns) {
                         ns.nuke(TARGET_SERVER);
                     }
                     else {
-                        ns.tprint("Error: Missing NUKE.exe");
+                        ns.print("Error: Missing NUKE.exe");
                     }
                 }
                 else {
-                    ns.tprint("Error: Not enough open ports. Open ports: " + server.openPortCount
+                    ns.print("Error: Not enough open ports. Open ports: " + server.openPortCount
                         + ". Ports required: " + server.numOpenPortsRequired);
                 }
             }
             else {
-                ns.tprint("Already have admin right.");
+                ns.print("Already have admin right.");
             }
         }
         initialize();
