@@ -9,7 +9,6 @@ export async function main(ns: NS) : Promise<void> {
         /* CONSTANTS */
         const MAX_MONEY_PERCENTAGE_THRESHOLD = 0.5;
 
-        // For now, this only runs on the home server
 		const HOST_SERVER = ns.getHostname();
 
         // Name of file
@@ -22,7 +21,7 @@ export async function main(ns: NS) : Promise<void> {
         }
         else {
             ns.tprint("Error: Argument 0 is not a string!");
-            ns.kill(SCRIPT_NAME, HOST_SERVER, ns.args[0].toString());
+            ns.exit();
         }
 		const TARGET_SERVER = arg0;
 
@@ -82,7 +81,7 @@ export async function main(ns: NS) : Promise<void> {
 
                 if (!ns.hasRootAccess(TARGET_SERVER)) {
                     ns.print("Error: Failed to gain root. Ending hack.");
-                    ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
+                    ns.exit();
                 }
 			}
 		}
@@ -128,7 +127,7 @@ export async function main(ns: NS) : Promise<void> {
             // If we cannot continuously grow money, then we will eventually kill the script when the
             // funding drops
             ns.print("ERROR: No money to hack.");
-            ns.kill(SCRIPT_NAME, HOST_SERVER, TARGET_SERVER);
+            ns.exit();
         }
 
 		// Check the security level and weaken it if it gets too high.

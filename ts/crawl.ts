@@ -8,7 +8,7 @@ import { NS } from "types/NetscriptDefinitions";
 
 export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
-    ns.tail();
+    //ns.tail();
 
     // This script should crawl hosts up to a specified depth
     // Function must be async

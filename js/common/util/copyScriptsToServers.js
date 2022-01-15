@@ -2,7 +2,7 @@ import { SCRIPTS } from "js/common/constants/scripts";
 // Once again I am dumb. You can't even copy programs to servers.
 export async function main(ns) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
-    ns.tail();
+    //ns.tail();
     // Function must be async
     // Get purchased servers and copy all available scripts to them
     async function copyProgramsToServers() {

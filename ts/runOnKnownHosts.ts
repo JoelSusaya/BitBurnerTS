@@ -8,8 +8,11 @@ export async function main(ns: NS) {
     async function runOnKnownHosts() {
         const KNOWN_HOSTS_FILE = "/logs/known-hosts.txt";
 
+        const HOST_SERVER = ns.getHostname();
+
         /* ARGUMENTS */
         // args[0] - script to run
+        ns.print(ns.args);
 
         // Parse the script from the argument, checking its type to give it a definite type
         let arg0 = "";
@@ -18,7 +21,7 @@ export async function main(ns: NS) {
             arg0 = ns.args[0];
         }
         else {
-            ns.tprint("Error: args[0] is not a string. It should be the script to run.");
+            ns.tprint("Error: args[0] is not a string. It should be the script to run. Got: " + ns.args[0]);
         }
 
         const SCRIPT_NAME = arg0;
@@ -47,19 +50,25 @@ export async function main(ns: NS) {
 
             if (knownHosts.length <= 0) {
                 ns.tprint("Error: No known hosts.");
-                
             }
         }
 
-        function remoteExecute(): void {
+        async function remoteExecute(): Promise<void> {
             for (let host of knownHosts) {
-                ns.run(SCRIPT_NAME, THREADS, host);
+                if (host != "") {
+                    while ((ns.getServerUsedRam(HOST_SERVER) + ns.getScriptRam(SCRIPT_NAME, HOST_SERVER)) 
+                            > 0.9 * ns.getServerMaxRam(HOST_SERVER)) {
+                        await ns.sleep(100);
+                    }
+                    ns.run(SCRIPT_NAME, THREADS, host);
+                }
+
             }
         }
 
         await initiailize();
 
-        remoteExecute();
+        await remoteExecute();
     }
 
     // Run the function or it's useless

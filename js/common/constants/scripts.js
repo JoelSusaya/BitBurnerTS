@@ -4,6 +4,7 @@ export class SCRIPTS {
         allScripts.push(SCRIPTS.CONSTANTS);
         allScripts.push(SCRIPTS.PROGRAMS);
         allScripts.push(SCRIPTS.SERVERS);
+        allScripts.push(SCRIPTS.KILL_THEN_INJECT);
         allScripts.push(SCRIPTS.GAIN_ROOT);
         allScripts.push(SCRIPTS.SIMPLE_HACK);
         allScripts.push(SCRIPTS.CRAWL);
@@ -14,6 +15,7 @@ export class SCRIPTS {
 SCRIPTS.CONSTANTS = "/js/common/constants/constants.js";
 SCRIPTS.PROGRAMS = "/js/common/constants/programs.js";
 SCRIPTS.SERVERS = "/js/common/constants/servers.js";
+SCRIPTS.KILL_THEN_INJECT = "/js/common/util/killThenInject.js";
 SCRIPTS.GAIN_ROOT = "/js/gainRoot.js";
 SCRIPTS.SIMPLE_HACK = "/js/simpleHack.js";
 SCRIPTS.CRAWL = "/js/crawl.js";
