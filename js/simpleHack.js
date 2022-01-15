@@ -2,10 +2,11 @@ import { CONSTANTS } from "js/common/constants/constants";
 export async function main(ns) {
     // Open a window on screen so we can see our progress
     //ns.tail();
-    // Wrapping everything in a function to keep the variables from entering the global scope.
+    // Wrapping everything in a function to keep the variables from entering the global scope. 
     async function simpleHack() {
         /* CONSTANTS */
-        const MAX_MONEY_PERCENTAGE_THRESHOLD = 0.5;
+        const MAX_MONEY_PERCENTAGE_THRESHOLD = 0.15;
+        const SECURITY_MULTIPLIER = 20;
         const HOST_SERVER = ns.getHostname();
         // Name of file
         const SCRIPT_NAME = CONSTANTS.SCRIPT_DIRECTORY + "simpleHack.js";
@@ -66,12 +67,12 @@ export async function main(ns) {
         }
         async function preHack() {
             // First we lower the security level before hacking further
-            while (securityLevel > minSecruityLevel + securityDecrement) {
+            while (securityLevel > minSecruityLevel + (securityDecrement * SECURITY_MULTIPLIER)) {
                 ns.print("Security Level: " + securityLevel + " / " + minSecruityLevel + " + " + securityDecrement);
                 await securityCheck();
             }
             // Grow the money until it is at least X% of the maximum possible
-            while (moneyAvailable < maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD) {
+            while (moneyAvailable < (maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD)) {
                 ns.print("Available Money: " + moneyAvailable + " / " + maxMoney);
                 await ns.grow(TARGET_SERVER);
                 await securityCheck();
@@ -80,12 +81,12 @@ export async function main(ns) {
         }
         async function continuousHack() {
             // Hack as long as there is 10% of the maximum money available.
-            // Try to replenish funding when it falls below 85%, but I'm not sure
+            // Try to replenish funding when it falls below X%, but I'm not sure
             // if max money means max money ever, or just a funding cap on the machine.
             // At the end of each loop, check the hacking level, and update our security decrease value t
             while (moneyAvailable > maxMoney * 0.1 && moneyAvailable > 0) {
                 await ns.hack(TARGET_SERVER);
-                if (moneyAvailable < maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD) {
+                if (moneyAvailable < (maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD)) {
                     await ns.grow(TARGET_SERVER);
                 }
                 await securityCheck();
@@ -105,7 +106,7 @@ export async function main(ns) {
         // a threshold defined as the sum of the minimum security level plus the 
         async function securityCheck() {
             securityLevel = ns.getServerSecurityLevel(TARGET_SERVER);
-            if (securityLevel >= minSecruityLevel + securityDecrement) {
+            if (securityLevel >= minSecruityLevel + (securityDecrement * SECURITY_MULTIPLIER)) {
                 await ns.weaken(TARGET_SERVER);
             }
         }
