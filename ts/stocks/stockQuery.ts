@@ -1,5 +1,5 @@
 import { NS } from "types/NetscriptDefinitions";
-import { Stock } from "js/common/stock";
+import { Stock } from "js/stocks/stock";
 
 export async function main(ns: NS) {
 
