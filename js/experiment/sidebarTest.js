@@ -22,15 +22,15 @@ export async function main(ns) {
         if (customNode !== null) {
             customNode.remove();
         }
-        let hacking = BLANK_ELEMENT;
+        let hackingMenu = BLANK_ELEMENT;
         //ns.tprint(buttonBases.length);
         for (let button of BUTTONS) {
             let buttonHTML = button;
             if (buttonHTML.innerText == "Hacking") {
-                hacking = buttonHTML;
+                hackingMenu = buttonHTML;
             }
         }
-        let hackingDrawer = hacking.nextElementSibling;
+        let hackingDrawer = hackingMenu.nextElementSibling;
         //ns.tprint(hackingDrawer.innerHTML);
         let hackingListRoot = BLANK_ELEMENT;
         if (hackingDrawer !== null) {

@@ -30,18 +30,18 @@ export async function main(ns: NS) {
             customNode.remove();
         }
     
-        let hacking: HTMLElement = BLANK_ELEMENT;
+        let hackingMenu: HTMLElement = BLANK_ELEMENT;
     
         //ns.tprint(buttonBases.length);
     
         for (let button of BUTTONS) {
             let buttonHTML = <HTMLElement>button;
             if (buttonHTML.innerText == "Hacking") {
-                hacking = buttonHTML;
+                hackingMenu = buttonHTML;
             }
         }
     
-        let hackingDrawer = hacking.nextElementSibling;
+        let hackingDrawer = hackingMenu.nextElementSibling;
     
         //ns.tprint(hackingDrawer.innerHTML);
     

@@ -108,7 +108,7 @@ export async function main(ns: NS) : Promise<void> {
             // Try to replenish funding when it falls below X%, but I'm not sure
             // if max money means max money ever, or just a funding cap on the machine.
             // At the end of each loop, check the hacking level, and update our security decrease value t
-            while (moneyAvailable > maxMoney * 0.1 && moneyAvailable > 0) {
+            while (moneyAvailable > 0) {
                 await ns.hack(TARGET_SERVER);
 
                 if (moneyAvailable < (maxMoney * MAX_MONEY_PERCENTAGE_THRESHOLD)) {
