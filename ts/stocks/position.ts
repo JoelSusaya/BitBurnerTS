@@ -7,14 +7,14 @@ export class Position {
     private _type!:     string;
     private _shares!:   number;
     private _price!:    number;
-    cost:     number;
+    value:     number;
 
     constructor(netscript: NS, positionType: string, positionShares: number, positionPrice: number) {
         this.ns     = netscript;
         this.type   = positionType;
         this.shares = positionShares;
         this.price  = positionPrice;
-        this.cost   = this.shares * this.price;
+        this.value   = this.shares * this.price;
     }
 
     get type() {

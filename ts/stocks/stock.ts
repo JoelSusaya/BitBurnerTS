@@ -13,8 +13,9 @@ export class Stock {
     askPrice!: number;
     bidPrice!: number;
     
-    forecast!: number;
-    volatility!: number;
+    forecast!:      number;
+    volatility!:    number;
+    forecastType!:  string;
 
     marketCap!: number;
 
@@ -48,6 +49,13 @@ export class Stock {
 
         this.forecast       = this.TIX.getForecast(     this.symbol);
         this.volatility     = this.TIX.getVolatility(   this.symbol);
+
+        if (this.forecast > 50) {
+            this.forecastType = CONSTANTS.STOCKS.LONG_POSITION;
+        }
+        else {
+            this.forecastType = CONSTANTS.STOCKS.SHORT_POSITION;
+        }
 
         this.positionData   = this.TIX.getPosition(     this.symbol);
 
@@ -90,7 +98,7 @@ export class Stock {
     // Method returns [orderSuccess: boolean, orderCost: number]
     // orderSuccess will be false if the order fails for any reason
     // orderCost will be 0 if the order fails
-    private marketOrder(positionType: string, shares: number, budget?: number): [boolean, number] {
+    marketOrder(positionType: string, shares: number, budget?: number): [boolean, number] {
         // If the shares number isn't valid, exit
         if (!this.isValidShares(shares)) {
             this.ns.tprintf("Error: Invalid number of shares to buy. Got %s", shares);
@@ -109,7 +117,7 @@ export class Stock {
 
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType) {
-            this.ns.sprintf("Error: Trying to take %s position, but currently in % position", 
+            this.ns.sprintf("Error: Trying to take %1$s position, but currently in %2$s position", 
                             positionType, this.position.type);
             return [false, 0];
         }
@@ -129,7 +137,7 @@ export class Stock {
 
     }
 
-    private marketSell(positionType: string, shares: number): [boolean, number] {
+    marketSell(positionType: string, shares: number): [boolean, number] {
         // If the shares number isn't valid, exit
         if (!this.isValidShares(shares)) {
             this.ns.tprintf("Error: Invalid number of shares to buy. Got %s", shares);
@@ -143,7 +151,7 @@ export class Stock {
         
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType) {
-            this.ns.sprintf("Error: Trying to sell in %s position, but currently in % position", 
+            this.ns.sprintf("Error: Trying to sell in %1$s position, but currently in %2$s position", 
                             positionType, this.position.type);
             return [false, 0];
         }

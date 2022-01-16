@@ -5,6 +5,7 @@ export async function main(ns: NS) {
 
     async function stockQuery() {
         // Create some strings needed to format currency using ns.nFormat()
+        // See http://numeraljs.com/
         const FORMAT_CURRENCY = "($ 0,0[.]00)";
         const FORMAT_PERCENTAGE = "0 %";
         const FORMAT_NUMBER = "0,0.0000"
@@ -68,7 +69,8 @@ export async function main(ns: NS) {
     
         ns.tprint(outputData);
 
-
+        // This function serves as a factory for formatting different numbers in a string format
+        // based on a string format. See http://numeraljs.com/
         function formatNumbers(number: number, format: string): string {
             return ns.nFormat(number, format);
         }

@@ -5,7 +5,7 @@ export class Position {
         this.type = positionType;
         this.shares = positionShares;
         this.price = positionPrice;
-        this.cost = this.shares * this.price;
+        this.value = this.shares * this.price;
     }
     get type() {
         return this._type;

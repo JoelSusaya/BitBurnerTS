@@ -19,6 +19,12 @@ export class Stock {
         this.bidPrice = this.TIX.getBidPrice(this.symbol);
         this.forecast = this.TIX.getForecast(this.symbol);
         this.volatility = this.TIX.getVolatility(this.symbol);
+        if (this.forecast > 50) {
+            this.forecastType = CONSTANTS.STOCKS.LONG_POSITION;
+        }
+        else {
+            this.forecastType = CONSTANTS.STOCKS.SHORT_POSITION;
+        }
         this.positionData = this.TIX.getPosition(this.symbol);
         [this.hasPosition, this.position]
             = Position.getPositionFromData(this.ns, this.positionData);
@@ -65,7 +71,7 @@ export class Stock {
         }
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType) {
-            this.ns.sprintf("Error: Trying to take %s position, but currently in % position", positionType, this.position.type);
+            this.ns.sprintf("Error: Trying to take %1$s position, but currently in %2$s position", positionType, this.position.type);
             return [false, 0];
         }
         if (positionType == CONSTANTS.STOCKS.LONG_POSITION || positionType == CONSTANTS.STOCKS.NO_POSITION) {
@@ -92,7 +98,7 @@ export class Stock {
         let sellPrice = this.price * shares;
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType) {
-            this.ns.sprintf("Error: Trying to sell in %s position, but currently in % position", positionType, this.position.type);
+            this.ns.sprintf("Error: Trying to sell in %1$s position, but currently in %2$s position", positionType, this.position.type);
             return [false, 0];
         }
         if (positionType == CONSTANTS.STOCKS.LONG_POSITION) {
