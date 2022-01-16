@@ -1,24 +1,27 @@
-import { NS, TIX } from "types/NetscriptDefinitions";
+import { NS, StockOrder, TIX } from "types/NetscriptDefinitions";
 import { CONSTANTS  }   from "js/common/constants/constants";
+import { Position } from "js/stocks/position";
 
 export class Stock {
-    static readonly ORDER_TYPES = [CONSTANTS.STOCKS.MARKET_ORDER, CONSTANTS.STOCKS.LIMIT_ORDER, CONSTANTS.STOCKS.STOP_ORDER];
-    static readonly POSITIONS   = [CONSTANTS.STOCKS.LONG_POSITION, CONSTANTS.STOCKS.SHORT_POSITION];
-
     readonly ns: NS;
     readonly TIX: TIX; 
 
     readonly symbol: string;
-
-    readonly price: number;
-    readonly askPrice: number;
-    readonly bidPrice: number;
-    
-    readonly forecast: number;
-    readonly volatility: number;
-
     readonly maxShares: number;
-    readonly marketCap: number;
+
+    price!: number;
+    askPrice!: number;
+    bidPrice!: number;
+    
+    forecast!: number;
+    volatility!: number;
+
+    marketCap!: number;
+
+    // Stock may not have a position, so it may be undefined.
+    position!: Position;
+    hasPosition!: Boolean;
+    positionData!: number[];
 
     constructor(netscape: NS, stockSymbol: string) {
         this.ns = netscape;
@@ -33,58 +36,149 @@ export class Stock {
 
         this.symbol = stockSymbol
 
-        this.price       = this.TIX.getPrice(         this.symbol);
-        this.askPrice    = this.TIX.getAskPrice(      this.symbol);
-        this.bidPrice    = this.TIX.getBidPrice(      this.symbol);
+        this.maxShares      = this.TIX.getMaxShares(    this.symbol);
 
-        this.forecast    = this.TIX.getForecast(      this.symbol);
-        this.volatility  = this.TIX.getVolatility(    this.symbol);
-
-        this.maxShares   = this.TIX.getMaxShares(     this.symbol);
-
-        this.marketCap   = this.price * this.maxShares;
+        this.update();
     }
 
-    buy (orderType: string, shares: number, orderPrice?: number, orderPosition?: string) {
-        if(Stock.ORDER_TYPES.includes(orderType)) {
-            if (orderType == CONSTANTS.STOCKS.MARKET_ORDER) {
-                this.TIX.buy(this.symbol, shares);
-            }
-            else {
-                // Make sure that order price is defined and positive
-                if (orderPrice && orderPrice > 0) {
-                    // Make sure the order position is definied and valid
-                    if (orderPosition && Stock.POSITIONS.includes(orderPosition)) {
-                        this.TIX.placeOrder(this.symbol, shares, orderPrice, orderType, orderPosition);
-                    }
-                    else {
-                        this.ns.tprintf("Error: Need a valid position (long | short). Got %s", orderPosition);
-                    }
-                }
-                else {
-                    this.ns.tprintf("Error: Need a positive order price. Got %s", orderType);
-                }
-            }
+    update(): void {
+        this.price          = this.TIX.getPrice(        this.symbol);
+        this.askPrice       = this.TIX.getAskPrice(     this.symbol);
+        this.bidPrice       = this.TIX.getBidPrice(     this.symbol);
 
-        }
-        else {
-            this.ns.tprintf("Error: Order type not found. Expected market | limit | stop, got %s", orderType);
-        }
+        this.forecast       = this.TIX.getForecast(     this.symbol);
+        this.volatility     = this.TIX.getVolatility(   this.symbol);
+
+        this.positionData   = this.TIX.getPosition(     this.symbol);
+
+        [this.hasPosition, this.position]       
+                            = Position.getPositionFromData(this.ns, this.positionData);
+
+        this.marketCap      = this.price * this.maxShares;
     }
 
-    sell () {
-
+    // A method for buying stocks at market price
+    // Arguments:
+    // Shares - The number of shares to buy
+    // Budget - An optional number denoting the amount of budget available for the purchase
+    buy (shares: number, budget?: number): [boolean, number] {
+        return this.marketOrder(CONSTANTS.STOCKS.LONG_POSITION, shares, budget);
     }
 
-    short () {
-
+    sell (shares: number): [boolean, number] {
+        return this.marketSell(CONSTANTS.STOCKS.SHORT_POSITION, shares);
     }
 
-    shortSell() {
+    short (shares: number, budget?: number): [boolean, number] {
+        return this.marketOrder(CONSTANTS.STOCKS.SHORT_POSITION, shares, budget);
+    }
 
+    shortSell (shares: number): [boolean, number] {
+        return this.marketSell(CONSTANTS.STOCKS.SHORT_POSITION, shares);
     }
 
     placeOrder() {
         
+    }
+
+    // Method for buying and shorting at market price
+    // Arguments
+    // positionType - long or short
+    // shares - The number of shares to buy
+    // budget? - Optional budget information to check to make sure the sale doesn't go over budget. Maybe shouldn't be part of this method.
+
+    // Method returns [orderSuccess: boolean, orderCost: number]
+    // orderSuccess will be false if the order fails for any reason
+    // orderCost will be 0 if the order fails
+    private marketOrder(positionType: string, shares: number, budget?: number): [boolean, number] {
+        // If the shares number isn't valid, exit
+        if (!this.isValidShares(shares)) {
+            this.ns.tprintf("Error: Invalid number of shares to buy. Got %s", shares);
+            return [false, 0];
+        }
+
+        // Make sure we have the latest stock data
+        this.update();
+
+        let purchaseCost = this.price * shares;
+
+        // If we are trying to buy more than we have budgeted, stop.
+        if (budget && purchaseCost > (budget - CONSTANTS.STOCKS.COMMISSION_FEE)) {
+            return [false, 0];
+        }
+
+        // Make sure the position we are in matches the type of order we are trying to place
+        if (this.position.type != positionType) {
+            this.ns.sprintf("Error: Trying to take %s position, but currently in % position", 
+                            positionType, this.position.type);
+            return [false, 0];
+        }
+
+        if  (positionType == CONSTANTS.STOCKS.LONG_POSITION || positionType == CONSTANTS.STOCKS.NO_POSITION) {
+            this.TIX.buy(this.symbol, shares);
+            return [true, purchaseCost];
+        }
+        else if (positionType == CONSTANTS.STOCKS.SHORT_POSITION || positionType == CONSTANTS.STOCKS.NO_POSITION) {
+            this.TIX.short(this.symbol, shares);
+            return [true, purchaseCost];
+        }
+        else {
+            this.ns.sprintf("Error: Invalid position. How did that happen?!");
+            return [false, 0];
+        }
+
+    }
+
+    private marketSell(positionType: string, shares: number): [boolean, number] {
+        // If the shares number isn't valid, exit
+        if (!this.isValidShares(shares)) {
+            this.ns.tprintf("Error: Invalid number of shares to buy. Got %s", shares);
+            return [false, 0];
+        }
+
+        // Make sure we have the latest stock data
+        this.update();
+
+        let sellPrice = this.price * shares;
+        
+        // Make sure the position we are in matches the type of order we are trying to place
+        if (this.position.type != positionType) {
+            this.ns.sprintf("Error: Trying to sell in %s position, but currently in % position", 
+                            positionType, this.position.type);
+            return [false, 0];
+        }
+
+        if  (positionType == CONSTANTS.STOCKS.LONG_POSITION) {
+            this.TIX.sell(this.symbol, shares);
+            return [true, sellPrice];
+        }
+        else if (positionType == CONSTANTS.STOCKS.SHORT_POSITION) {
+            this.TIX.sellShort(this.symbol, shares);
+            return [true, sellPrice];
+        }
+        else {
+            this.ns.sprintf("Error: Invalid position. How did that happen?!");
+            return [false, 0];
+        }
+    }
+
+    private isValidOrdidType(orderType: string) {
+        if (CONSTANTS.ORDER_TYPES.includes(orderType)) {
+            return true;
+        }
+        else {
+            this.ns.tprintf("Error: Order type not found. Expected limit | stop, got %s", orderType);
+            return false;
+        }
+    }
+
+    private isValidShares(shares: number) {
+        if (shares > 0) {
+            return true;
+        }
+        else {
+            this.ns.tprintf("Error: Shares must be a postive number got %s", shares);
+            return false;
+        }
     }
 }

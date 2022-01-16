@@ -9,5 +9,12 @@ export class CONSTANTS {
         
         LONG_POSITION:  'long',
         SHORT_POSITION: 'short',
+        NO_POSITION:    'none',
+
+        COMMISSION_FEE: 1000000
     }
+
+    static readonly ORDER_TYPES = [CONSTANTS.STOCKS.LIMIT_ORDER, CONSTANTS.STOCKS.STOP_ORDER];
+    static readonly POSITIONS   = [CONSTANTS.STOCKS.LONG_POSITION, CONSTANTS.STOCKS.SHORT_POSITION, 
+                                    CONSTANTS.STOCKS.NO_POSITION];
 }
