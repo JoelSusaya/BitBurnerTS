@@ -1,4 +1,5 @@
 import { NS } from "types/NetscriptDefinitions";
+import { Stock } from "js/common/stock";
 
 export async function main(ns: NS) {
 
@@ -36,18 +37,9 @@ export async function main(ns: NS) {
         if (STOCK_SYMBOL == EMPTY_STRING) {
             ns.tprint("Error: args[0] is missing. args[0] should be the stock symbol to query.");
             ns.exit();
-        }   
+        }
 
-        // Query the stock data
-        let price       = TIX.getPrice(         STOCK_SYMBOL);
-        let askPrice    = TIX.getAskPrice(      STOCK_SYMBOL);
-        let bidPrice    = TIX.getBidPrice(      STOCK_SYMBOL);
-        let forecast    = TIX.getForecast(      STOCK_SYMBOL);
-        let volatility  = TIX.getVolatility(    STOCK_SYMBOL);
-        let maxShares   = TIX.getMaxShares(     STOCK_SYMBOL);
-
-        // Calculate the market cap
-        let marketCap = price * maxShares;
+        let stock = new Stock(ns, STOCK_SYMBOL);
 
         // Spawn some functions to format numbers so we can use them in an array map
         let formatCurrency      = (number: number) => formatNumbers( number, FORMAT_CURRENCY    );
@@ -55,9 +47,9 @@ export async function main(ns: NS) {
         let formatNumber        = (number: number) => formatNumbers( number, FORMAT_NUMBER      );
 
         // Format the currency, percentages, and other numbers
-        let currencyData    = [price, askPrice, bidPrice, marketCap].map(formatCurrency);
-        let percentageData  = [forecast, volatility].map(formatPercentage);
-        let numberData      = [maxShares].map(formatNumber);
+        let currencyData    = [stock.price, stock.askPrice, stock.bidPrice, stock.marketCap].map(formatCurrency);
+        let percentageData  = [stock.forecast, stock.volatility].map(formatPercentage);
+        let numberData      = [stock.maxShares].map(formatNumber);
         
         // Prepare a formatted string to print to the terminal.
         let outputData = ns.sprintf(`

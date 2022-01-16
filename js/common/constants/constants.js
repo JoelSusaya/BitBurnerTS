@@ -1,3 +1,4 @@
 export class CONSTANTS {
 }
 CONSTANTS.SCRIPT_DIRECTORY = "js/";
+CONSTANTS.HOME_SERVER = "home";

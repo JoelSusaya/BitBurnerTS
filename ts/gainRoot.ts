@@ -1,5 +1,4 @@
 import { NS, Server } from "../types/NetscriptDefinitions";
-import { Argument } from "js/common/argument";
 import { PROGRAMS   }   from "js/common/constants/programs";
 
 export async function main(ns: NS) : Promise<void> {
