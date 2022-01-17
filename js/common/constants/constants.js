@@ -2,6 +2,21 @@ export class CONSTANTS {
 }
 CONSTANTS.SCRIPT_DIRECTORY = "js/";
 CONSTANTS.HOME_SERVER = "home";
+CONSTANTS.DIRECTORIES = {
+    CRAWL_LOGS: '/logs',
+};
+CONSTANTS.TEXT_FILES = {
+    KNOWN_HOSTS: '/known-hosts.txt',
+    CRAWL_REPORT: '/crawl-report.txt',
+    HOST_INFO: '/host-info.txt'
+};
+CONSTANTS.FILE_EXTENSIONS = {
+    NS1: '.script',
+    NS2: '.js',
+    TEXT: '.txt',
+    MESSAGE: '.msg',
+    CODING_CONTRACT: '.cct'
+};
 CONSTANTS.STOCKS = {
     MARKET_ORDER: 'market',
     LIMIT_ORDER: 'limit',

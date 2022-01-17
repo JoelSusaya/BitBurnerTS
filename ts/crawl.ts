@@ -1,4 +1,5 @@
 import { NS } from "types/NetscriptDefinitions";
+import { CONSTANTS } from "js/common/constants/constants";
 
 /* TODO
 
@@ -18,12 +19,10 @@ export async function main(ns: NS) {
         // Name of file
 		const SCRIPT_NAME = ns.getScriptName();
 
-        // Error Log
-        const ERROR_LOG = "logs/errors/crawl-error.txt";
-
         // Log crawled hosts
-        const CRAWL_LOG = "/logs/known-hosts.txt";
-        const CRAWL_REPORT = "/logs/crawl-report.txt";
+        const CRAWL_LOG = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.KNOWN_HOSTS;
+        const CRAWL_REPORT = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.CRAWL_REPORT;
+        const HOST_INFO_REPORT = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.HOST_INFO;
 
         /* ARGUMENTS */
         // args[0] - crawl depth
@@ -43,7 +42,7 @@ export async function main(ns: NS) {
 
         /* VARIABLES */
         // Keep track of the hosts that we crawl
-        let crawledServers: Array<string> = new Array<string>();
+        let crawledHosts: Array<string> = new Array<string>();
         let hostsToScan: Array<string> = new Array<string>();
         let currentDepth: number;
 
@@ -52,12 +51,14 @@ export async function main(ns: NS) {
 
             currentDepth = 0;
             hostsToScan.push(HOST_SERVER);
-            crawledServers.push(HOST_SERVER);
+            crawledHosts.push(HOST_SERVER);
 
-            // Write the depth and host to start the file off
+            // Write the depth and host to start the report off
+            // Log the HOST_SERVER to the known hosts file
             await ns.write(CRAWL_REPORT, "Depth 0: \n", "w");
-            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
             await ns.write(CRAWL_REPORT, HOST_SERVER + "\n", "a");
+            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
+            await ns.write(HOST_INFO_REPORT, "", "w");
 
             ns.print("Initialization complete...");
         }
@@ -73,28 +74,44 @@ export async function main(ns: NS) {
 
                 let newHostsToScan: Array<string> = new Array<string>();
 
+                // Shift off the first host in our list of hosts to scan and scan it to see which nodes it is connected to
                 while (hostsToScan.length > 0) {
                     let host = hostsToScan.shift();
                     
-                    let scannedServers = ns.scan(host);
+                    let scannedHosts = ns.scan(host);
 
-                    for (let server of scannedServers) {
+                    // For each scanned server, make sure that we haven't crawled it before.
+                    // If we haven't crawled it, then push it into an array of new hosts to scan after we exhaust all
+                    // hosts at our current crawl depth
+                    // Finally, write to the crawl reports/logs
+                    for (let host of scannedHosts) {
                         // Only add a server to be crawled if we haven't crawled it yet.
-                        if (!crawledServers.includes(server)) {
-                            newHostsToScan.push(server);
-                            crawledServers.push(server);
-                            await ns.write(CRAWL_LOG, server + "\n", "a");
-                            await ns.write(CRAWL_REPORT, server + "\n", "a");
+                        if (!crawledHosts.includes(host)) {
+                            // Get a server object for the host we are crawling
+                            let server = ns.getServer(host);
+
+                            // If the server is one of ours, skip crawling it, there are better ways to access them
+                            if (!server.purchasedByPlayer) {
+                                let hostInfo = ns.vsprintf("%s,%s,%s,%s,%s,%s\n", 
+                                [host, server.hasAdminRights, server.requiredHackingSkill, server.openPortCount, server.numOpenPortsRequired, server.ramUsed, server.maxRam]);
+    
+                                newHostsToScan.push(host);
+                                crawledHosts.push(host);
+                                await ns.write(CRAWL_LOG, host + "\n", "a");
+                                await ns.write(CRAWL_REPORT, host + "\n", "a");
+                                await ns.write(HOST_INFO_REPORT, hostInfo, "a");
+                            }
                         }
 
                     }
                 }
 
-                // Copy the new hosts to scan to the hosts to scan so we can scan those hosts
+                // Copy the new hosts to scan to the hosts to scan so we can scan those hosts durring the next pass
+                // Increase the depth and report our progress to the popup window
                 hostsToScan = [...newHostsToScan];
                 currentDepth++;
                 ns.print("Current depth crawl complete.");
-                ns.print("Hosts scanned: " + crawledServers.length);
+                ns.print("Hosts scanned: " + crawledHosts.length);
             }
         }
 
