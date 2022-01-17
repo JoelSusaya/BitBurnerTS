@@ -2,54 +2,30 @@ import { NS } from "../../types/NetscriptDefinitions";
 
 // Pretty useless class, I thought I would do more with it
 export class Argument {
-    index: number;
-    type: string;
-    value: (string | number | boolean);
-
-    constructor(argument: string | number | boolean, argumentIndex: number) {
-        this.index = argumentIndex;
-        this.type = typeof(argument);
-        this.value = argument;
-    }
-
-    public isString() {
-        if (this.type == "string") {
-            return true;
+    static validateString(arg: string | number | boolean): [boolean, string] {
+        if (typeof(arg) == "string") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, ""];
         }
     }
 
-    public isNumber() {
-        if (this.type == "number") {
-            return true;
+    static validateNumber(arg: string | number | boolean): [boolean, number] {
+        if (typeof(arg) == "number") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, 0];
         }
     }
 
-    public isBoolean() {
-        if (this.type == "string") {
-            return true;
+    static validateBoolean(arg: string | number | boolean): [boolean, boolean] {
+        if (typeof(arg) == "boolean") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, false];
         }
-    }
-
-    public static parseArgs(ns: NS, args: (string | number | boolean)[]): Argument[] {
-        let parsedArgs: Argument[] = [];
-
-        if (args.length == 0) {
-            ns.tprint("Error: No arguments passed to parseArgs. Got: " + args.toString());
-        }
-
-        for (let index = 0; index < args.length; index++) {
-            new Argument(args[index], index)
-        }
-
-        return parsedArgs;
     }
 }

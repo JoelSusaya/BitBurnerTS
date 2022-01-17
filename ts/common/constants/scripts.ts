@@ -10,6 +10,9 @@ export class SCRIPTS {
     static readonly CRAWL           = "/js/crawl.js";
     static readonly RUN_KNOWN_HOSTS = "/js/runOnKnownHosts.js";
 
+    static readonly START_BOT       = "/js/stocks/startBot.js";
+    static readonly STOP_BOT        = "/js/stocks/stopBot.js";
+
     static all(): string[] {
         let allScripts: string[] = [];
 
@@ -23,6 +26,9 @@ export class SCRIPTS {
         allScripts.push(SCRIPTS.SIMPLE_HACK);
         allScripts.push(SCRIPTS.CRAWL);
         allScripts.push(SCRIPTS.RUN_KNOWN_HOSTS);
+
+        allScripts.push(SCRIPTS.START_BOT);
+        allScripts.push(SCRIPTS.STOP_BOT);
 
         return allScripts;
     }

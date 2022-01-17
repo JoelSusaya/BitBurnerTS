@@ -2,7 +2,7 @@
     "compilerOptions": {
       "allowSyntheticDefaultImports": true,
       "esModuleInterop": true,
-      "module": "es2022",
+      "module": "esnext",
       "noImplicitAny": true,
       "noEmitOnError": true,
       "removeComments": false,

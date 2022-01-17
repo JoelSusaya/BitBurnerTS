@@ -11,33 +11,33 @@ export class Position {
         return this._type;
     }
     set type(value) {
-        if (CONSTANTS.ORDER_TYPES.includes(value)) {
+        if (CONSTANTS.POSITIONS.includes(value)) {
             this._type = value;
         }
         else {
-            this.ns.tprintf("Error: Expected %s, but got %s", CONSTANTS.ORDER_TYPES, value);
+            this.ns.tprintf("Error: Expected %s, but got %s", CONSTANTS.POSITIONS, value);
         }
     }
     get shares() {
         return this._shares;
     }
     set shares(value) {
-        if (value > 0) {
+        if (value >= 0) {
             this._shares = value;
         }
         else {
-            this.ns.tprintf("Error: Expected shares to be greater than to 0. Got %s.", value);
+            this.ns.tprintf("Error: Expected shares to be >= 0. Got %s.", value);
         }
     }
     get price() {
         return this._price;
     }
     set price(value) {
-        if (value > 0) {
+        if (value >= 0) {
             this._price = value;
         }
         else {
-            this.ns.tprintf("Error: Price must be greater than 0. Got %s.", value);
+            this.ns.tprintf("Error: Price must be >= 0. Got %s.", value);
         }
     }
     static getPositionFromData(ns, positionData) {

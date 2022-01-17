@@ -48,9 +48,9 @@ export async function main(ns: NS) {
         let formatNumber        = (number: number) => formatNumbers( number, FORMAT_NUMBER      );
 
         // Format the currency, percentages, and other numbers
-        let currencyData    = [stock.price, stock.askPrice, stock.bidPrice, stock.marketCap].map(formatCurrency);
-        let percentageData  = [stock.forecast, stock.volatility].map(formatPercentage);
-        let numberData      = [stock.maxShares].map(formatNumber);
+        let currencyData    = [stock.price, stock.askPrice, stock.bidPrice, stock.marketCap, stock.position.price].map(formatCurrency);
+        let percentageData  = [stock.forecast, stock.volatility, stock.forecastMagnitude].map(formatPercentage);
+        let numberData      = [stock.maxShares, stock.position.shares].map(formatNumber);
         
         // Prepare a formatted string to print to the terminal.
         let outputData = ns.sprintf(`
@@ -58,13 +58,19 @@ export async function main(ns: NS) {
             Ask Price: 	%2$s
             Bid Price:	%3$s
     
-            Volatility:	%6$s
-            Forecast:	%5$s
+            Volatility:	%7$s
+
+            Forecast:	%6$s
+            Magnitude:  %8$s
+
+            Position:   %11$s
+            Shares:     %10$s
+            Price:      %5$s
     
-            Max Shares:	%7$s
+            Max Shares:	%9$s
             Market Cap: %4$s
         `,
-        ...currencyData, ...percentageData, ...numberData
+        ...currencyData, ...percentageData, ...numberData, stock.position.type, 
         );
     
         ns.tprint(outputData);

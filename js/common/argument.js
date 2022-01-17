@@ -1,42 +1,27 @@
 // Pretty useless class, I thought I would do more with it
 export class Argument {
-    constructor(argument, argumentIndex) {
-        this.index = argumentIndex;
-        this.type = typeof (argument);
-        this.value = argument;
-    }
-    isString() {
-        if (this.type == "string") {
-            return true;
+    static validateString(arg) {
+        if (typeof (arg) == "string") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, ""];
         }
     }
-    isNumber() {
-        if (this.type == "number") {
-            return true;
+    static validateNumber(arg) {
+        if (typeof (arg) == "number") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, 0];
         }
     }
-    isBoolean() {
-        if (this.type == "string") {
-            return true;
+    static validateBoolean(arg) {
+        if (typeof (arg) == "boolean") {
+            return [true, arg];
         }
         else {
-            return false;
+            return [false, false];
         }
-    }
-    static parseArgs(ns, args) {
-        let parsedArgs = [];
-        if (args.length == 0) {
-            ns.tprint("Error: No arguments passed to parseArgs. Got: " + args.toString());
-        }
-        for (let index = 0; index < args.length; index++) {
-            new Argument(args[index], index);
-        }
-        return parsedArgs;
     }
 }
