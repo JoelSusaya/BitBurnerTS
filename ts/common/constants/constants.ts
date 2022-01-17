@@ -7,9 +7,11 @@ export class CONSTANTS {
     };
 
     static readonly TEXT_FILES = {
-        KNOWN_HOSTS:    '/known-hosts.txt',
-        CRAWL_REPORT:   '/crawl-report.txt',
-        HOST_INFO:      '/host-info.txt'
+        KNOWN_HOSTS:        '/known-hosts.txt',
+        CRAWL_REPORT:       '/crawl-report.txt',
+        HOST_INFO:          '/host-info.txt',
+        ROOTED_HOSTS:       '/rooted-hosts.txt',
+        CRAWLED_CONTRACTS:  '/crawled-contracts.txt'
     };
 
     static readonly FILE_EXTENSIONS = {

@@ -14,9 +14,11 @@ export async function main(ns) {
         // Name of file
         const SCRIPT_NAME = ns.getScriptName();
         // Log crawled hosts
-        const CRAWL_LOG = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.KNOWN_HOSTS;
+        const KNOWN_HOSTS = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.KNOWN_HOSTS;
         const CRAWL_REPORT = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.CRAWL_REPORT;
         const HOST_INFO_REPORT = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.HOST_INFO;
+        const ROOTED_HOSTS = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.ROOTED_HOSTS;
+        const CRAWLED_CONTRACTS = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.CRAWLED_CONTRACTS;
         /* ARGUMENTS */
         // args[0] - crawl depth
         // Parse the target system from the argument, checking its type to give it a definite type
@@ -40,10 +42,13 @@ export async function main(ns) {
             crawledHosts.push(HOST_SERVER);
             // Write the depth and host to start the report off
             // Log the HOST_SERVER to the known hosts file
+            // Clear the reports
             await ns.write(CRAWL_REPORT, "Depth 0: \n", "w");
             await ns.write(CRAWL_REPORT, HOST_SERVER + "\n", "a");
-            await ns.write(CRAWL_LOG, HOST_SERVER + "\n", "w");
+            await ns.write(KNOWN_HOSTS, HOST_SERVER + "\n", "w");
             await ns.write(HOST_INFO_REPORT, "", "w");
+            await ns.write(ROOTED_HOSTS, HOST_SERVER, "w");
+            await ns.write(CRAWLED_CONTRACTS, "", "w");
             ns.print("Initialization complete...");
         }
         async function crawlToDepth(depth) {
@@ -69,12 +74,38 @@ export async function main(ns) {
                             let server = ns.getServer(host);
                             // If the server is one of ours, skip crawling it, there are better ways to access them
                             if (!server.purchasedByPlayer) {
-                                let hostInfo = ns.vsprintf("%s,%s,%s,%s,%s,%s\n", [host, server.hasAdminRights, server.requiredHackingSkill, server.openPortCount, server.numOpenPortsRequired, server.ramUsed, server.maxRam]);
+                                // Host Info Report
+                                // Hostname, Has Admin Rights, Required Hacking Skill, Open Port Count,
+                                // Number of Open Ports Required, Max RAM, CPU Cores, Max Money, Organization 
+                                let hostInfoData = [host, server.hasAdminRights, server.requiredHackingSkill,
+                                    server.openPortCount, server.numOpenPortsRequired, server.maxRam,
+                                    server.cpuCores, server.moneyMax, server.organizationName];
+                                // Format a string for this line of the report
+                                let hostInfo = ns.vsprintf("%s ".repeat(hostInfoData.length) + "\n", [host, server.hasAdminRights, server.requiredHackingSkill, server.openPortCount,
+                                    server.numOpenPortsRequired, server.maxRam, server.cpuCores, server.moneyMax,
+                                    server.organizationName]);
+                                // Get the files on the servers
+                                let files = ns.ls(host);
+                                // Filter out coding contracts. I could just use ".cct" as the second argument in
+                                // ns.ls(host, grep), but I will do it this way in case I want to do something with 
+                                // the other files
+                                let contractsInfo = "";
+                                for (let codingContract of files.filter(file => file.match(".cct"))) {
+                                    let contractInfo = ns.vsprintf("%s %s\n", [codingContract, host]);
+                                    contractsInfo += contractInfo;
+                                }
+                                // Track the new hosts to scan and track that we crawled this host
                                 newHostsToScan.push(host);
                                 crawledHosts.push(host);
-                                await ns.write(CRAWL_LOG, host + "\n", "a");
-                                await ns.write(CRAWL_REPORT, host + "\n", "a");
+                                let hostReportString = host + "\n";
+                                await ns.write(KNOWN_HOSTS, hostReportString, "a");
+                                await ns.write(CRAWL_REPORT, hostReportString, "a");
                                 await ns.write(HOST_INFO_REPORT, hostInfo, "a");
+                                await ns.write(CRAWLED_CONTRACTS, contractsInfo, "a");
+                                // If we have root acess, write that to the rooted-hosts.txt file
+                                if (server.hasAdminRights) {
+                                    await ns.write(ROOTED_HOSTS, hostReportString, "a");
+                                }
                             }
                         }
                     }

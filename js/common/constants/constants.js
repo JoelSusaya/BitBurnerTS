@@ -8,7 +8,9 @@ CONSTANTS.DIRECTORIES = {
 CONSTANTS.TEXT_FILES = {
     KNOWN_HOSTS: '/known-hosts.txt',
     CRAWL_REPORT: '/crawl-report.txt',
-    HOST_INFO: '/host-info.txt'
+    HOST_INFO: '/host-info.txt',
+    ROOTED_HOSTS: '/rooted-hosts.txt',
+    CRAWLED_CONTRACTS: '/crawled-contracts.txt'
 };
 CONSTANTS.FILE_EXTENSIONS = {
     NS1: '.script',

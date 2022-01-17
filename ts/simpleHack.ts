@@ -1,5 +1,6 @@
 import { NS         }   from "../types/NetscriptDefinitions";
 import { CONSTANTS  }   from "js/common/constants/constants";
+import { Argument } from "js/common/argument";
 
 export async function main(ns: NS) : Promise<void> {
     // Open a window on screen so we can see our progress
@@ -15,18 +16,31 @@ export async function main(ns: NS) : Promise<void> {
         // Name of file
 		const SCRIPT_NAME = CONSTANTS.SCRIPT_DIRECTORY + "simpleHack.js";
 
-        let arg0 = "";
-		// Our target server
-        if (typeof(ns.args[0]) == "string") {
-            arg0 = ns.args[0];
-        }
-        else {
-            ns.tprint("Error: Argument 0 is not a string!");
+        let argument: string | number | boolean;
+        let isArgumentValid: boolean;
+
+        // arg[0] - Target Server
+        [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
+        if (!isArgumentValid) {
+            ns.tprintf("Error: arg[1] is invalid. Expected a string, but got %s", argument);
             ns.exit();
         }
-		const TARGET_SERVER = arg0;
+        const TARGET_SERVER = argument;
 
-        const THREADS = 1;
+        // arg[1] - Threads
+        // Default to 1 if no argument is passed in
+        if (ns.args.length > 1) {
+            [isArgumentValid, argument] = Argument.validateNumber(ns.args[1]);
+            if (!isArgumentValid || argument < 0) {
+                ns.tprintf("Error: arg[1] is invalid. Expected a number above 0, but got %s", typeof(argument));
+                ns.exit();
+            }
+        }
+        else {
+            argument = 1;
+        }
+
+        const THREADS = argument;
 
 		const MAX_OPEN_PORTS = 1;
 
