@@ -196,7 +196,7 @@ export class Stock {
             return true;
         }
         else {
-            this.ns.tprintf("Error: Shares must be a postive number got %s", shares);
+            this.ns.print(this.ns.vsprintf("Error: Shares must be a postive number got %s", [shares]));
             return false;
         }
     }

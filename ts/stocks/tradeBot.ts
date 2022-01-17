@@ -54,11 +54,10 @@ export class TradeBot {
 
     // Tick the TradeBot
     async tick() {
-        // Delete data file
-        this.ns.rm(this.fileName, this.ns.getHostname());
-
         // Update our portfolio, selling off anything below our threshold
         this.updatePortfolio();
+
+        this.ns.print(this.ns.vsprintf("Budget: %s", [this.budget]));
 
         // Our potential budget is our budget plus the value of our portfolio
         let potentialBudget = this.budget + this.portfolioValue;
@@ -75,6 +74,7 @@ export class TradeBot {
 
         // Calculate how to spend the potential budget based on the stock forecasts.
         for (let stock of this.stocks) {
+            this.ns.print(this.ns.vsprintf("Checking %s, Forecast: %s, Available Shares %s", [stock.symbol, stock.forecast, stock.availableShares]));
             // Apparently shorting stocks isn't available until you get some shit I don't have, so we will
             // skip any short positions for now
             if (stock.forecastType == CONSTANTS.STOCKS.SHORT_POSITION) {
@@ -90,6 +90,7 @@ export class TradeBot {
             // Stocks are sorted by forecast, so if we hit one beneath our threshold before our budget is gone,
             // just stop
             if (stock.forecastMagnitude < this.forecastThreshold) {
+                this.ns.print(this.ns.vsprintf("Does not meet threshold %s / %s", [stock.forecastMagnitude, this.forecastThreshold]));
                 break;
             }
 
@@ -102,26 +103,27 @@ export class TradeBot {
             // If we have enough budget, sell our worst forecasted stock first
             // Unless we have no portfolio, then skip
             if (this.portfolio.length > 0 && purchaseCost > this.budget) {
+                this.ns.print("Trying to rebalance...");
                 // Get the worst forecasted stock
                 let worstPortfolioStock = this.portfolio[this.portfolio.length - 1];
 
                 // If our worst portfolio stock has a better forecast than this one
-                // break because we are out of money
-                if (worstPortfolioStock.forecastMagnitude > stock.forecastMagnitude) {
-                    break;
+                // skip the rest
+                if (worstPortfolioStock.forecastMagnitude < stock.forecastMagnitude) {
+                    // Find out how much we need to sell
+                    // Add a bit of room for error
+                    let neededBudget = purchaseCost - this.budget;
+                    let sharesToSell = Math.ceil(neededBudget / worstPortfolioStock.position.price);
+                    sharesToSell *= 1.05;
+                    
+                    // Sell the shares
+                    let isSuccess: boolean;
+                    let sellPrice: number;
+                    [isSuccess, sellPrice] = worstPortfolioStock.marketSell(stock.position.type, sharesToSell);
+                    if (isSuccess) {
+                        this.budget += sellPrice;
+                    }
                 }
-
-                // Find out how much we need to sell
-                // Add a bit of room for error
-                let neededBudget = purchaseCost - this.budget;
-                let sharesToSell = Math.ceil(neededBudget / worstPortfolioStock.position.price);
-                sharesToSell *= 1.05;
-                
-                // Sell the shares
-                let isSuccess: boolean;
-                let sellPrice: number;
-                [isSuccess, sellPrice] = worstPortfolioStock.marketSell(stock.position.type, sharesToSell);
-                this.budget += sellPrice;
             }
             // Check again if we meet the budget
             if (purchaseCost > this.budget) {
@@ -131,18 +133,22 @@ export class TradeBot {
                 let approxSharesCanBuy = Math.floor(this.budget / stock.price) * 0.90;
 
                 stock.marketOrder(stock.forecastType, approxSharesCanBuy);
-                // Write the stock symbol to a file in case we end the bot
-                await this.ns.write(this.fileName, stock.symbol + "\n", "a");
+                this.portfolio.push(stock);
                 // Exit because we are out of budget
                 break;
             }
 
-
+            this.ns.print(this.ns.vsprintf("Trying to purchase %s, %s shares, %s position", [stock.symbol, stock.availableShares, stock.forecastType]));
             stock.marketOrder(stock.forecastType, stock.availableShares);
+            this.portfolio.push(stock);
+        }
+
+        // Update external portfolio file
+        this.ns.rm(this.fileName, this.ns.getHostname());
+        for (let stock of this.portfolio) {
             // Write the stock symbol to a file in case we end the bot
             await this.ns.write(this.fileName, stock.symbol + "\n", "a");
         }
-
     }
 
     liquidate(): void {
@@ -174,13 +180,21 @@ export class TradeBot {
             stock.update();
             
             // If we sell the stock, lower our porfolio value and add to our budget
-            if (stock.forecastMagnitude < this.forecastThreshold || stock.forecastType != stock.position.type) {
+            let sellThreshold = this.forecastThreshold - 0.01;
+            if (stock.forecastMagnitude < sellThreshold || stock.forecastType != stock.position.type) {
+                this.ns.print(this.ns.vsprintf("Selling %s", [stock.symbol]));
                 let sellSuccess: boolean;
                 let sellPrice: number;
                 [sellSuccess, sellPrice] = stock.marketSell(stock.position.type, stock.position.shares);
 
-                this.portfolioValue -= sellPrice;
-                this.budget         += sellPrice;
+                // If the sale worked, remove the stock from the portfolio and it it to our budget
+                this.ns.print(this.ns.vsprintf("Sold %s, removing from portfolio. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
+                if (sellSuccess) {
+                    let index = this.portfolio.indexOf(stock);
+                    this.portfolio.splice(index, 1);
+                    this.budget         += sellPrice;
+                }
+                this.ns.print(this.ns.vsprintf("Removed. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
             }
             else {
                 this.portfolioValue += stock.position.value;
