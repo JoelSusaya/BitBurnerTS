@@ -30,6 +30,7 @@ export class Stock {
             this.forecastType = CONSTANTS.STOCKS.SHORT_POSITION;
             this.forecastMagnitude = 1 - this.forecast;
         }
+        // Create a Position from the position data, so we can know what position we have, if any
         this.positionData = this.TIX.getPosition(this.symbol);
         [this.hasPosition, this.position]
             = Position.getPositionFromData(this.ns, this.positionData);

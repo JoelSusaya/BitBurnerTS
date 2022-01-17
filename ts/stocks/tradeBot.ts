@@ -57,10 +57,10 @@ export class TradeBot {
         // Update our portfolio, selling off anything below our threshold
         this.updatePortfolio();
 
-        this.ns.print(this.ns.vsprintf("Budget: %s", [this.budget]));
+        //this.ns.print(this.ns.vsprintf("Budget: %s", [this.budget]));
 
         // Our potential budget is our budget plus the value of our portfolio
-        let potentialBudget = this.budget + this.portfolioValue;
+        //let potentialBudget = this.budget + this.portfolioValue;
 
         // Spend our budget. If we want to buy a stock, but don't have enough money, check if we have any stocks
         // in our portfolio that have a worse forcast. Sell the worst stocks and buy better ones.
@@ -74,7 +74,7 @@ export class TradeBot {
 
         // Calculate how to spend the potential budget based on the stock forecasts.
         for (let stock of this.stocks) {
-            this.ns.print(this.ns.vsprintf("Checking %s, Forecast: %s, Available Shares %s", [stock.symbol, stock.forecast, stock.availableShares]));
+            //this.ns.print(this.ns.vsprintf("Checking %s, Forecast: %s, Available Shares %s", [stock.symbol, stock.forecast, stock.availableShares]));
             // Apparently shorting stocks isn't available until you get some shit I don't have, so we will
             // skip any short positions for now
             if (stock.forecastType == CONSTANTS.STOCKS.SHORT_POSITION) {
@@ -109,7 +109,8 @@ export class TradeBot {
 
                 // If our worst portfolio stock has a better forecast than this one
                 // skip the rest
-                if (worstPortfolioStock.forecastMagnitude < stock.forecastMagnitude) {
+                // Also check that the stock isn't the same as the one we are buying
+                if (worstPortfolioStock.symbol != stock.symbol && worstPortfolioStock.forecastMagnitude < stock.forecastMagnitude) {
                     // Find out how much we need to sell
                     // Add a bit of room for error
                     let neededBudget = purchaseCost - this.budget;
@@ -127,7 +128,8 @@ export class TradeBot {
             }
             // Check again if we meet the budget
             if (purchaseCost > this.budget) {
-                this.ns.print(this.ns.vsprintf("Can't afford %s. Trying to budget starting with %s.", [purchaseCost, this.budget]));
+                this.ns.print(this.ns.vsprintf("Can't afford %s. Trying to budget starting with %s.", 
+                            [purchaseCost, this.budget]));
                 // If we don't have enough money, buy as much of the stock as we can
                 // Leave a bit of room because the price may be higher than estimated
                 let approxSharesCanBuy = Math.floor(this.budget / stock.price) * 0.90;
@@ -138,9 +140,22 @@ export class TradeBot {
                 break;
             }
 
-            this.ns.print(this.ns.vsprintf("Trying to purchase %s, %s shares, %s position", [stock.symbol, stock.availableShares, stock.forecastType]));
-            stock.marketOrder(stock.forecastType, stock.availableShares);
-            this.portfolio.push(stock);
+            this.ns.print(this.ns.vsprintf("Trying to purchase %s, %s shares, %s position", 
+                [stock.symbol, stock.availableShares, stock.forecastType]));
+            
+            // Try to buy the stock
+            let isSuccess: boolean;
+            let buyPrice: number;
+            [isSuccess, buyPrice] = stock.marketOrder(stock.forecastType, stock.availableShares);
+
+            // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
+            if (isSuccess) {
+                this.portfolio.push(stock);
+                this.budget -= buyPrice;
+
+                this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
+                [stock.symbol, this.budget]));
+            }  
         }
 
         // Update external portfolio file
@@ -155,9 +170,14 @@ export class TradeBot {
 
     }
 
+    // Go through each stock and update it. Also update our portfolio stocks to make sure they are up-to-date.
     private updateStockData(): void {
+        let newPortfolio: Array<Stock> = new Array<Stock>();
         for (let stock of this.stocks) {
             stock.update();
+            if(stock.hasPosition) {
+                newPortfolio.push(stock);
+            }
         }
 
         this.sortForecasts();
@@ -172,7 +192,7 @@ export class TradeBot {
     // Update the stock data and get our portfolio value
     private updatePortfolio(): void {
         this.portfolioValue = 0;
-        
+
         // Go through each stock and update it
         // If it is under our threshold or we have the wrong position, sell it, 
         // otherwise add it's value to our portfolio
@@ -193,8 +213,8 @@ export class TradeBot {
                     let index = this.portfolio.indexOf(stock);
                     this.portfolio.splice(index, 1);
                     this.budget         += sellPrice;
+                    this.ns.print(this.ns.vsprintf("Removed. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
                 }
-                this.ns.print(this.ns.vsprintf("Removed. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
             }
             else {
                 this.portfolioValue += stock.position.value;

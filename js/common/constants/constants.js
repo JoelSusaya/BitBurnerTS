@@ -2,6 +2,8 @@ export class CONSTANTS {
 }
 CONSTANTS.SCRIPT_DIRECTORY = "js/";
 CONSTANTS.HOME_SERVER = "home";
+CONSTANTS.NEWLINE = "\n";
+CONSTANTS.SPACE = " ";
 CONSTANTS.DIRECTORIES = {
     CRAWL_LOGS: '/logs',
 };
@@ -10,7 +12,7 @@ CONSTANTS.TEXT_FILES = {
     CRAWL_REPORT: '/crawl-report.txt',
     HOST_INFO: '/host-info.txt',
     ROOTED_HOSTS: '/rooted-hosts.txt',
-    CRAWLED_CONTRACTS: '/crawled-contracts.txt'
+    CRAWLED_CONTRACTS: '/contracts.txt'
 };
 CONSTANTS.FILE_EXTENSIONS = {
     NS1: '.script',

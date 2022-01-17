@@ -1,5 +1,8 @@
 // Pretty useless class, I thought I would do more with it
 export class Argument {
+    constructor(arg) {
+        this.value = arg;
+    }
     static validateString(arg) {
         if (typeof (arg) == "string") {
             return [true, arg];
@@ -23,5 +26,23 @@ export class Argument {
         else {
             return [false, false];
         }
+    }
+}
+export class StringArgument extends Argument {
+    constructor(arg) {
+        super(arg);
+        this.value = arg;
+    }
+}
+export class NumberArgument extends Argument {
+    constructor(arg) {
+        super(arg);
+        this.value = arg;
+    }
+}
+export class BooleanArgument extends Argument {
+    constructor(arg) {
+        super(arg);
+        this.value = arg;
     }
 }

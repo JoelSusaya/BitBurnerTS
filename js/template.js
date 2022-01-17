@@ -1,7 +1,6 @@
 import { Argument } from "js/common/argument";
 import { GLOBAL } from "js/common/global";
 export async function main(ns) {
-    let DEBUG;
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
     // this.ns.print(this.ns.vsprintf("", []));
     // Function must be async

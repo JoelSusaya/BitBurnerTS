@@ -6,7 +6,9 @@ export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
     // this.ns.print(this.ns.vsprintf("", []));
     // Function must be async
-    async function template() {
+
+    // This is a master script for running a hacking operation on a target
+    async function master() {
         if (GLOBAL.DEBUG) {
             ns.print("Debug mode is on.");
             ns.tail();
@@ -59,5 +61,5 @@ export async function main(ns: NS) {
     }
 
     // Run the function or it's useless
-    await template();
+    await master();
 }

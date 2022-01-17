@@ -2,6 +2,9 @@ export class CONSTANTS {
     static readonly SCRIPT_DIRECTORY = "js/";
     static readonly HOME_SERVER = "home";
 
+    static readonly NEWLINE = "\n";
+    static readonly SPACE = " ";
+
     static readonly DIRECTORIES = {
         CRAWL_LOGS:     '/logs',
     };
@@ -11,7 +14,7 @@ export class CONSTANTS {
         CRAWL_REPORT:       '/crawl-report.txt',
         HOST_INFO:          '/host-info.txt',
         ROOTED_HOSTS:       '/rooted-hosts.txt',
-        CRAWLED_CONTRACTS:  '/crawled-contracts.txt'
+        CRAWLED_CONTRACTS:  '/contracts.txt'
     };
 
     static readonly FILE_EXTENSIONS = {

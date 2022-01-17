@@ -6,27 +6,13 @@ export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
     // this.ns.print(this.ns.vsprintf("", []));
     // Function must be async
-    async function template() {
+
+    // A function for running a batch of HWGW on a target
+    async function batch() {
         if (GLOBAL.DEBUG) {
             ns.print("Debug mode is on.");
             ns.tail();
         }
-
-        /* ARGUMENTS */
-        // I like to store my arguments as constants, so I need some regular variables for validating the arguments
-        // before assignment
-        let argument: string | number | boolean;
-        let isArgumentValid: boolean;
-
-        // arg[0] - Target Server //
-        // This is the server we want to hack. We can hack any server in the game, but only if our skill is high enough
-        // and we have root access.
-        [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
-        if (!isArgumentValid) {
-            ns.tprintf("Error: arg[0] is invalid. Expected a string, but got %s", argument);
-            argumentError();
-        }
-        const ARGUMENT = argument;
 
         // For calling when we have an argument error. Prints the usage info and exits.
         function argumentError() {
@@ -56,8 +42,24 @@ export async function main(ns: NS) {
 
             ns.tprint(usage);
         }
+
+        /* ARGUMENTS */
+        // I like to store my arguments as constants, so I need some regular variables for validating the arguments
+        // before assignment
+        let argument: string | number | boolean;
+        let isArgumentValid: boolean;
+
+        // arg[0] - Target Server //
+        // This is the server we want to hack. We can hack any server in the game, but only if our skill is high enough
+        // and we have root access.
+        [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
+        if (!isArgumentValid) {
+            ns.tprintf("Error: arg[0] is invalid. Expected a string, but got %s", argument);
+            argumentError();
+        }
+        const ARGUMENT = argument;
     }
 
     // Run the function or it's useless
-    await template();
+    await batch();
 }
