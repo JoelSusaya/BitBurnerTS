@@ -147,7 +147,7 @@ export class TradeBot {
                             [purchaseCost, BUDGET.STOCKS].map(this.formatter.formatCurrency) ) );
                 // If we don't have enough money, buy as much of the stock as we can
                 // Leave a bit of room because the price may be higher than estimated
-                let approxSharesCanBuy = Math.floor(BUDGET.STOCKS / stock.price) * 0.90;
+                let approxSharesCanBuy = Math.floor(BUDGET.STOCKS / stock.price) * CONSTANTS.STOCKS.SHARE_PURCHASE_MULTIPLIER;
 
                 // We're out of money if this happens, so break
                 if (approxSharesCanBuy == 0) {
@@ -160,7 +160,10 @@ export class TradeBot {
                 [isSuccess, buyPrice] = stock.marketOrder(stock.forecastType, approxSharesCanBuy);
                             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
                 if (isSuccess) {
-                    this.portfolio.push(stock);
+                    // If we just bought more of the stock, we don't want to add it
+                    if (!this.portfolio.includes(stock)) {
+                        this.portfolio.push(stock);
+                    }
                     BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                     this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
@@ -180,7 +183,10 @@ export class TradeBot {
 
             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
             if (isSuccess) {
-                this.portfolio.push(stock);
+                // If we just bought more of the stock, we don't want to add it
+                if (!this.portfolio.includes(stock)) {
+                    this.portfolio.push(stock);
+                }
                 BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                 this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
@@ -248,7 +254,7 @@ export class TradeBot {
                 }
             }
             else {
-                this.portfolioValue += stock.position.value;
+                this.portfolioValue += stock.position.shares * stock.price;
             }
         }
 

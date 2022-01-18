@@ -80,16 +80,16 @@ export class Stock {
     // Arguments:
     // Shares - The number of shares to buy
     // Budget - An optional number denoting the amount of budget available for the purchase
-    buy (shares: number, budget?: number): [boolean, number] {
-        return this.marketOrder(CONSTANTS.STOCKS.LONG_POSITION, shares, budget);
+    buy (shares: number): [boolean, number] {
+        return this.marketOrder(CONSTANTS.STOCKS.LONG_POSITION, shares);
     }
 
     sell (shares: number): [boolean, number] {
         return this.marketSell(CONSTANTS.STOCKS.SHORT_POSITION, shares);
     }
 
-    short (shares: number, budget?: number): [boolean, number] {
-        return this.marketOrder(CONSTANTS.STOCKS.SHORT_POSITION, shares, budget);
+    short (shares: number): [boolean, number] {
+        return this.marketOrder(CONSTANTS.STOCKS.SHORT_POSITION, shares);
     }
 
     shortSell (shares: number): [boolean, number] {
@@ -109,7 +109,7 @@ export class Stock {
     // Method returns [orderSuccess: boolean, orderCost: number]
     // orderSuccess will be false if the order fails for any reason
     // orderCost will be 0 if the order fails
-    marketOrder(positionType: string, shares: number, budget?: number): [boolean, number] {
+    marketOrder(positionType: string, shares: number): [boolean, number] {
         // If the shares number isn't valid, exit
         if (!this.isValidShares(shares)) {
             this.ns.print(this.ns.vsprintf("Error: Invalid number of shares to buy. Got %s", [shares]));
@@ -119,12 +119,7 @@ export class Stock {
         // Make sure we have the latest stock data
         this.update();
 
-        let purchaseCost = this.price * shares;
-
-        // If we are trying to buy more than we have budgeted, stop.
-        if (budget && purchaseCost > (budget - CONSTANTS.STOCKS.COMMISSION_FEE)) {
-            return [false, 0];
-        }
+        let purchaseCost = this.TIX.getPurchaseCost(this.symbol, shares, positionType);
         
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType && this.position.type != CONSTANTS.STOCKS.NO_POSITION) {
@@ -158,7 +153,7 @@ export class Stock {
         // Make sure we have the latest stock data
         this.update();
 
-        let sellPrice = this.price * shares;
+        let sellPrice = this.TIX.getSaleGain(this.symbol, shares, positionType);
         
         // Make sure the position we are in matches the type of order we are trying to place
         // Unlike buying, we need to be in a position to sell

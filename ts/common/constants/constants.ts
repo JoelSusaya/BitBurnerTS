@@ -36,6 +36,7 @@ export class CONSTANTS {
 
         COMMISSION_FEE:         100000,
         UPDATE_TICK_DURATION:   6000,
+        SHARE_PURCHASE_MULTIPLIER: 0.96
     };
 
     // Create some strings needed to format currency using ns.nFormat()
