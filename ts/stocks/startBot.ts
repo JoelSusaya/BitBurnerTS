@@ -2,6 +2,8 @@ import { NS } from "types/NetscriptDefinitions";
 import { TradeBot } from "js/stocks/tradeBot";
 import { Argument } from "js/common/argument";
 import { CONSTANTS } from "js/common/constants/constants";
+import { Formatter } from "js/common/formatter";
+import { BUDGET } from "js/common/budget";
 // import { Stock } from "js/stocks/stock";
 
 export async function main(ns: NS) {
@@ -21,6 +23,8 @@ export async function main(ns: NS) {
         let argument: string | number | boolean;
         let isArgumentValid: boolean;
 
+        let formatter = new Formatter(ns);
+
         // arg[0] - Name
         [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
         if (!isArgumentValid) {
@@ -35,7 +39,7 @@ export async function main(ns: NS) {
             ns.tprintf("Error: arg[1] is invalid. Expected a number above 0, but got %s", typeof(argument));
             ns.exit();
         }
-        const BUDGET = argument;
+        const STOCK_BUDGET = argument;
 
         // arg[2] - Forecast Threshold
         [isArgumentValid, argument] = Argument.validateNumber(ns.args[2]);
@@ -57,12 +61,17 @@ export async function main(ns: NS) {
             stockSymbols.push(argument);
         }
 
-        let tradeBot = new TradeBot(ns, NAME, BUDGET, FORECAST_THRESHOLD, ...stockSymbols);
+        BUDGET.addToStockBudget(ns, STOCK_BUDGET);
 
+        ns.print(ns.vsprintf("Budget: %s, Tried to add: %s", [BUDGET.STOCKS, STOCK_BUDGET].map(formatter.formatCurrency) ) );
+
+        let tradeBot = new TradeBot(ns, NAME, FORECAST_THRESHOLD, ...stockSymbols);
+        
         while(true) {
             await tradeBot.tick();
-            ns.print(ns.vsprintf("Portfolio value: %s, Portfolio Size: %s", 
-                    [tradeBot.portfolioValue, tradeBot.portfolio.length]));
+            ns.print(ns.vsprintf("Portfolio value: %s, Portfolio Size: %s, Budget: %s", 
+                    [formatter.formatCurrency(tradeBot.portfolioValue), tradeBot.portfolio.length, 
+                        formatter.formatCurrency(BUDGET.STOCKS)] ) );
             await ns.asleep(CONSTANTS.STOCKS.UPDATE_TICK_DURATION);
         }
     }

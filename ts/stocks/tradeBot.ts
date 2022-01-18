@@ -1,6 +1,8 @@
 import { NS, TIX } from "types/NetscriptDefinitions";
 import { CONSTANTS } from "js/common/constants/constants";
 import { Stock } from "js/stocks/stock";
+import { Formatter } from "js/common/formatter";
+import { BUDGET } from "js/common/budget";
 
 export class TradeBot {
     private readonly ns: NS;
@@ -15,20 +17,26 @@ export class TradeBot {
     portfolio: Stock[];
     portfolioValue: number;
 
-    private fileName : string;
+    // private fileName : string;
 
-    budget: number;
+    //budget: number;
     forecastThreshold: number;
+
+    private formatter: Formatter;
     
-    constructor(netscript: NS, name: string, budget: number, forecastThreshold: number, ...symbolsToAdd: string[]) {
+    constructor(netscript: NS, name: string, forecastThreshold: number, ...symbolsToAdd: string[]) {
         this.ns = netscript;
         this.TIX = this.ns.stock;
         
+        this.formatter = new Formatter(this.ns);
+        
         this.name = name;
 
-        this.fileName = "/data/stocks/" + this.name + ".txt";
+        // this.fileName = "/data/stocks/" + this.name + ".txt";
+        this.ns.print(this.ns.vsprintf("Budget: %s, ", [BUDGET.STOCKS].map(this.formatter.formatCurrency) ) );
+
         
-        this.budget = budget;
+        //this.ns.print(BUDGET.STOCKS);
         this.forecastThreshold = forecastThreshold;
         this.portfolioValue = 0;
 
@@ -90,7 +98,8 @@ export class TradeBot {
             // Stocks are sorted by forecast, so if we hit one beneath our threshold before our budget is gone,
             // just stop
             if (stock.forecastMagnitude < this.forecastThreshold) {
-                this.ns.print(this.ns.vsprintf("Does not meet threshold %s / %s", [stock.forecastMagnitude, this.forecastThreshold]));
+                this.ns.print(this.ns.vsprintf("Does not meet threshold %s / %s", 
+                                [stock.forecastMagnitude, this.forecastThreshold]));
                 break;
             }
 
@@ -102,7 +111,7 @@ export class TradeBot {
 
             // If we have enough budget, sell our worst forecasted stock first
             // Unless we have no portfolio, then skip
-            if (this.portfolio.length > 0 && purchaseCost > this.budget) {
+            if (this.portfolio.length > 0 && purchaseCost > BUDGET.STOCKS) {
                 this.ns.print("Trying to rebalance...");
                 // Get the worst forecasted stock
                 let worstPortfolioStock = this.portfolio[this.portfolio.length - 1];
@@ -113,7 +122,7 @@ export class TradeBot {
                 if (worstPortfolioStock.symbol != stock.symbol && worstPortfolioStock.forecastMagnitude < stock.forecastMagnitude) {
                     // Find out how much we need to sell
                     // Add a bit of room for error
-                    let neededBudget = purchaseCost - this.budget;
+                    let neededBudget = purchaseCost - BUDGET.STOCKS;
                     let sharesToSell = Math.ceil(neededBudget / worstPortfolioStock.position.price);
                     sharesToSell *= 1.05;
                     
@@ -122,17 +131,23 @@ export class TradeBot {
                     let sellPrice: number;
                     [isSuccess, sellPrice] = worstPortfolioStock.marketSell(stock.position.type, sharesToSell);
                     if (isSuccess) {
-                        this.budget += sellPrice;
+                        BUDGET.addToStockBudget(this.ns, sellPrice);
                     }
                 }
             }
-            // Check again if we meet the budget
-            if (purchaseCost > this.budget) {
+            // Check again if we meet the budget, if we don't check to see if our budget is less than the commission fee
+            // if it is, skip this
+            if (purchaseCost > BUDGET.STOCKS) {
+                // If we couldn't rebalance and we have a smaller budget than the commission fee, don't waste money
+                if (BUDGET.STOCKS < CONSTANTS.STOCKS.COMMISSION_FEE) {
+                    break;
+                }
+
                 this.ns.print(this.ns.vsprintf("Can't afford %s. Trying to budget starting with %s.", 
-                            [purchaseCost, this.budget]));
+                            [purchaseCost, BUDGET.STOCKS].map(this.formatter.formatCurrency) ) );
                 // If we don't have enough money, buy as much of the stock as we can
                 // Leave a bit of room because the price may be higher than estimated
-                let approxSharesCanBuy = Math.floor(this.budget / stock.price) * 0.90;
+                let approxSharesCanBuy = Math.floor(BUDGET.STOCKS / stock.price) * 0.90;
 
                 // We're out of money if this happens, so break
                 if (approxSharesCanBuy == 0) {
@@ -146,17 +161,17 @@ export class TradeBot {
                             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
                 if (isSuccess) {
                     this.portfolio.push(stock);
-                    this.budget -= buyPrice;
+                    BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                     this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
-                    [stock.symbol, this.budget]));
+                    [stock.symbol, BUDGET.STOCKS] ) );
                 }  
                 // Exit because we are out of budget if we got here
                 break;
             }
 
             this.ns.print(this.ns.vsprintf("Trying to purchase %s, %s shares, %s position", 
-                [stock.symbol, stock.availableShares, stock.forecastType]));
+                [stock.symbol, stock.availableShares, stock.forecastType] ) );
             
             // Try to buy the stock
             let isSuccess: boolean;
@@ -166,19 +181,19 @@ export class TradeBot {
             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
             if (isSuccess) {
                 this.portfolio.push(stock);
-                this.budget -= buyPrice;
+                BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                 this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
-                [stock.symbol, this.budget]));
+                [stock.symbol, BUDGET.STOCKS]));
             }  
         }
 
         // Update external portfolio file
-        this.ns.rm(this.fileName, this.ns.getHostname());
-        for (let stock of this.portfolio) {
-            // Write the stock symbol to a file in case we end the bot
-            await this.ns.write(this.fileName, stock.symbol + "\n", "a");
-        }
+        // this.ns.rm(this.fileName, this.ns.getHostname());
+        // for (let stock of this.portfolio) {
+        //     // Write the stock symbol to a file in case we end the bot
+        //     await this.ns.write(this.fileName, stock.symbol + "\n", "a");
+        // }
     }
 
     liquidate(): void {
@@ -224,12 +239,12 @@ export class TradeBot {
                 [sellSuccess, sellPrice] = stock.marketSell(stock.position.type, stock.position.shares);
 
                 // If the sale worked, remove the stock from the portfolio and it it to our budget
-                this.ns.print(this.ns.vsprintf("Sold %s, removing from portfolio. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
+                //this.ns.print(this.ns.vsprintf("Sold %s, removing from portfolio. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
                 if (sellSuccess) {
                     let index = this.portfolio.indexOf(stock);
                     this.portfolio.splice(index, 1);
-                    this.budget         += sellPrice;
-                    this.ns.print(this.ns.vsprintf("Removed. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
+                    BUDGET.addToStockBudget(this.ns, sellPrice);
+                    this.ns.print(this.ns.vsprintf("Sold %s. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
                 }
             }
             else {

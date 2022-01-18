@@ -34,7 +34,7 @@ export class CONSTANTS {
         SHORT_POSITION: 'short',
         NO_POSITION:    'none',
 
-        COMMISSION_FEE:         1000000,
+        COMMISSION_FEE:         100000,
         UPDATE_TICK_DURATION:   6000,
     };
 
