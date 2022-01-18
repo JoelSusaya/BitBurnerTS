@@ -12,8 +12,8 @@ export class TradeBot {
     private readonly stockSymbols: string[];
     
     private stocks: Stock[];
-    private portfolio: Stock[];
-    private portfolioValue: number;
+    portfolio: Stock[];
+    portfolioValue: number;
 
     private fileName : string;
 
@@ -134,9 +134,24 @@ export class TradeBot {
                 // Leave a bit of room because the price may be higher than estimated
                 let approxSharesCanBuy = Math.floor(this.budget / stock.price) * 0.90;
 
-                stock.marketOrder(stock.forecastType, approxSharesCanBuy);
-                this.portfolio.push(stock);
-                // Exit because we are out of budget
+                // We're out of money if this happens, so break
+                if (approxSharesCanBuy == 0) {
+                    break;
+                }
+
+                let isSuccess: boolean;
+                let buyPrice: number;
+
+                [isSuccess, buyPrice] = stock.marketOrder(stock.forecastType, approxSharesCanBuy);
+                            // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
+                if (isSuccess) {
+                    this.portfolio.push(stock);
+                    this.budget -= buyPrice;
+
+                    this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
+                    [stock.symbol, this.budget]));
+                }  
+                // Exit because we are out of budget if we got here
                 break;
             }
 
@@ -179,6 +194,7 @@ export class TradeBot {
                 newPortfolio.push(stock);
             }
         }
+        this.portfolio = newPortfolio;
 
         this.sortForecasts();
     }

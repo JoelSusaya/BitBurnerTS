@@ -38,6 +38,14 @@ export class CONSTANTS {
         UPDATE_TICK_DURATION:   6000,
     };
 
+    // Create some strings needed to format currency using ns.nFormat()
+    // See http://numeraljs.com/
+    static readonly FORMAT = {
+        CURRENCY:   "($ 0,0[.]00)",
+        PERCENTAGE: "0 %",
+        NUMBER:     "0,0.0000"
+    }
+
     static readonly ORDER_TYPES = [CONSTANTS.STOCKS.LIMIT_ORDER, CONSTANTS.STOCKS.STOP_ORDER];
     static readonly POSITIONS   = [CONSTANTS.STOCKS.LONG_POSITION, CONSTANTS.STOCKS.SHORT_POSITION, 
                                     CONSTANTS.STOCKS.NO_POSITION];

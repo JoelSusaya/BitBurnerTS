@@ -132,7 +132,7 @@ export class Stock {
         }
     }
     isValidShares(shares) {
-        if (shares > 0) {
+        if (shares >= 0) {
             return true;
         }
         else {

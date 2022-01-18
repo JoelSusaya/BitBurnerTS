@@ -61,6 +61,8 @@ export async function main(ns: NS) {
 
         while(true) {
             await tradeBot.tick();
+            ns.print(ns.vsprintf("Portfolio value: %s, Portfolio Size: %s", 
+                    [tradeBot.portfolioValue, tradeBot.portfolio.length]));
             await ns.asleep(CONSTANTS.STOCKS.UPDATE_TICK_DURATION);
         }
     }

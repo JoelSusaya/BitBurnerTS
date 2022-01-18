@@ -1,15 +1,11 @@
 import { NS } from "types/NetscriptDefinitions";
 import { Stock } from "js/stocks/stock";
+import { CONSTANTS } from "js/common/constants/constants";
+import { Formatter } from "js/common/formatter";
 
 export async function main(ns: NS) {
 
     async function stockQuery() {
-        // Create some strings needed to format currency using ns.nFormat()
-        // See http://numeraljs.com/
-        const FORMAT_CURRENCY = "($ 0,0[.]00)";
-        const FORMAT_PERCENTAGE = "0 %";
-        const FORMAT_NUMBER = "0,0.0000"
-
         // I use EMPTY_STRING because it is easier for me to visually grep and semantically understand
         const EMPTY_STRING = "";
 
@@ -40,17 +36,14 @@ export async function main(ns: NS) {
             ns.exit();
         }
 
+        let formatter = new Formatter(ns);
+        
         let stock = new Stock(ns, STOCK_SYMBOL);
 
-        // Spawn some functions to format numbers so we can use them in an array map
-        let formatCurrency      = (number: number) => formatNumbers( number, FORMAT_CURRENCY    );
-        let formatPercentage    = (number: number) => formatNumbers( number, FORMAT_PERCENTAGE  );
-        let formatNumber        = (number: number) => formatNumbers( number, FORMAT_NUMBER      );
-
         // Format the currency, percentages, and other numbers
-        let currencyData    = [stock.price, stock.askPrice, stock.bidPrice, stock.marketCap, stock.position.price].map(formatCurrency);
-        let percentageData  = [stock.forecast, stock.volatility, stock.forecastMagnitude].map(formatPercentage);
-        let numberData      = [stock.maxShares, stock.position.shares].map(formatNumber);
+        let currencyData    = [stock.price, stock.askPrice, stock.bidPrice, stock.marketCap, stock.position.price].map(formatter.formatCurrency);
+        let percentageData  = [stock.forecast, stock.volatility, stock.forecastMagnitude].map(formatter.formatPercentage);
+        let numberData      = [stock.maxShares, stock.position.shares].map(formatter.formatNumber);
         
         // Prepare a formatted string to print to the terminal.
         let outputData = ns.sprintf(`
@@ -74,12 +67,6 @@ export async function main(ns: NS) {
         );
     
         ns.tprint(outputData);
-
-        // This function serves as a factory for formatting different numbers in a string format
-        // based on a string format. See http://numeraljs.com/
-        function formatNumbers(number: number, format: string): string {
-            return ns.nFormat(number, format);
-        }
     }
 
     await stockQuery();
