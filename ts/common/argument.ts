@@ -1,5 +1,3 @@
-import { NS } from "../../types/NetscriptDefinitions";
-
 // Pretty useless class, I thought I would do more with it
 export class Argument {
     readonly value: string | number| boolean;

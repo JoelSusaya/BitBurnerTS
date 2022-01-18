@@ -4,7 +4,7 @@ import { GLOBAL } from "js/common/global";
 
 export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
-    // this.ns.print(this.ns.vsprintf("", []));
+    // ns.print(this.ns.vsprintf("", []));
     // Function must be async
     async function template() {
         if (GLOBAL.DEBUG) {
@@ -23,7 +23,8 @@ export async function main(ns: NS) {
         // and we have root access.
         [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
         if (!isArgumentValid) {
-            ns.tprintf("Error: arg[0] is invalid. Expected a string, but got %s", argument);
+            ns.tprint(ns.vsprintf("Error: arg[0] is invalid. Expected a string, but got %s", 
+                        [argument]));
             argumentError();
         }
         const ARGUMENT = argument;

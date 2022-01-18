@@ -6,7 +6,7 @@ export class BUDGET {
     static _STOCKS: number;
     private static _HACKNET: number;
 
-    get CASH() {
+    static get CASH() {
         return BUDGET._CASH;
     }
     
