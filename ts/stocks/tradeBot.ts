@@ -112,7 +112,6 @@ export class TradeBot {
             // If we have enough budget, sell our worst forecasted stock first
             // Unless we have no portfolio, then skip
             if (this.portfolio.length > 0 && purchaseCost > BUDGET.STOCKS) {
-                this.ns.print("Trying to rebalance...");
                 // Get the worst forecasted stock
                 let worstPortfolioStock = this.portfolio[this.portfolio.length - 1];
 
@@ -120,6 +119,7 @@ export class TradeBot {
                 // skip the rest
                 // Also check that the stock isn't the same as the one we are buying
                 if (worstPortfolioStock.symbol != stock.symbol && worstPortfolioStock.forecastMagnitude < stock.forecastMagnitude) {
+                    this.ns.print("Trying to rebalance...");
                     // Find out how much we need to sell
                     // Add a bit of room for error
                     let neededBudget = purchaseCost - BUDGET.STOCKS;
@@ -127,11 +127,15 @@ export class TradeBot {
                     sharesToSell *= 1.05;
                     
                     // Sell the shares
-                    let isSuccess: boolean;
-                    let sellPrice: number;
-                    [isSuccess, sellPrice] = worstPortfolioStock.marketSell(stock.position.type, sharesToSell);
-                    if (isSuccess) {
-                        BUDGET.addToStockBudget(this.ns, sellPrice);
+                    let sellPrice = worstPortfolioStock.marketSell(sharesToSell);
+                    if (sellPrice != 0) {
+                        let budgetSuccess = BUDGET.addToStockBudget(this.ns, sellPrice);
+
+                        // TEMP FIX: my budgeter sometimes refuses to add money to the budget, so just yolo it all
+                        // if that happens
+                        if (!budgetSuccess) {
+                            BUDGET.stock_yolo(this.ns.getPlayer());
+                        }
                     }
                 }
             }
@@ -154,12 +158,10 @@ export class TradeBot {
                     break;
                 }
 
-                let isSuccess: boolean;
-                let buyPrice: number;
-
-                [isSuccess, buyPrice] = stock.marketOrder(stock.forecastType, approxSharesCanBuy);
-                            // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
-                if (isSuccess) {
+                let buyPrice = stock.marketOrder(stock.forecastType, approxSharesCanBuy);
+                
+                // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
+                if (buyPrice != 0) {
                     // If we just bought more of the stock, we don't want to add it
                     if (!this.portfolio.includes(stock)) {
                         this.portfolio.push(stock);
@@ -167,7 +169,7 @@ export class TradeBot {
                     BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                     this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
-                    [stock.symbol, BUDGET.STOCKS] ) );
+                    [stock.symbol, this.formatter.formatCurrency(buyPrice)]));
                 }  
                 // Exit because we are out of budget if we got here
                 break;
@@ -177,12 +179,10 @@ export class TradeBot {
                 [stock.symbol, stock.availableShares, stock.forecastType] ) );
             
             // Try to buy the stock
-            let isSuccess: boolean;
-            let buyPrice: number;
-            [isSuccess, buyPrice] = stock.marketOrder(stock.forecastType, stock.availableShares);
+            let buyPrice = stock.marketOrder(stock.forecastType, stock.availableShares);
 
             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
-            if (isSuccess) {
+            if (buyPrice != 0) {
                 // If we just bought more of the stock, we don't want to add it
                 if (!this.portfolio.includes(stock)) {
                     this.portfolio.push(stock);
@@ -190,7 +190,7 @@ export class TradeBot {
                 BUDGET.withdrawFromStockBudget(this.ns, buyPrice);
 
                 this.ns.print(this.ns.vsprintf("Purchased successfully. Bought %s for %s.", 
-                [stock.symbol, BUDGET.STOCKS]));
+                [stock.symbol, this.formatter.formatCurrency(buyPrice)]));
             }  
         }
 
@@ -240,16 +240,20 @@ export class TradeBot {
             let sellThreshold = this.forecastThreshold - 0.01;
             if (stock.forecastMagnitude < sellThreshold || stock.forecastType != stock.position.type) {
                 this.ns.print(this.ns.vsprintf("Selling %s", [stock.symbol]));
-                let sellSuccess: boolean;
-                let sellPrice: number;
-                [sellSuccess, sellPrice] = stock.marketSell(stock.position.type, stock.position.shares);
+                let sellPrice = stock.marketSell(stock.position.shares);
 
                 // If the sale worked, remove the stock from the portfolio and it it to our budget
                 //this.ns.print(this.ns.vsprintf("Sold %s, removing from portfolio. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
-                if (sellSuccess) {
+                if (sellPrice != 0) {
                     let index = this.portfolio.indexOf(stock);
                     this.portfolio.splice(index, 1);
-                    BUDGET.addToStockBudget(this.ns, sellPrice);
+                    let budgetSuccess = BUDGET.addToStockBudget(this.ns, sellPrice);
+                    
+                    // TEMP FIX: my budgeter sometimes refuses to add money to the budget, so just yolo it all
+                    // if that happens
+                    if (!budgetSuccess) {
+                        BUDGET.stock_yolo(this.ns.getPlayer());
+                    }
                     this.ns.print(this.ns.vsprintf("Sold %s. Portfolio size: %s", [stock.symbol, this.portfolio.length]));
                 }
             }

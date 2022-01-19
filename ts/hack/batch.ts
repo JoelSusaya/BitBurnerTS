@@ -43,6 +43,15 @@ export async function main(ns: NS) {
             ns.tprint(usage);
         }
 
+        // An enum for naming your arguments instead of just using integers
+        enum ARGS {
+            TARGET_SERVER
+        }
+
+        const SERVER_REPORT_STRING = `
+                
+        `
+
         /* ARGUMENTS */
         // I like to store my arguments as constants, so I need some regular variables for validating the arguments
         // before assignment
@@ -52,12 +61,14 @@ export async function main(ns: NS) {
         // arg[0] - Target Server //
         // This is the server we want to hack. We can hack any server in the game, but only if our skill is high enough
         // and we have root access.
-        [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
+        [isArgumentValid, argument] = Argument.validateString(ns.args[ARGS.TARGET_SERVER]);
         if (!isArgumentValid) {
             ns.tprintf("Error: arg[0] is invalid. Expected a string, but got %s", argument);
             argumentError();
         }
-        const ARGUMENT = argument;
+        const TARGET_SERVER = argument;
+
+        
     }
 
     // Run the function or it's useless

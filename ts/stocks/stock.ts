@@ -80,20 +80,20 @@ export class Stock {
     // Arguments:
     // Shares - The number of shares to buy
     // Budget - An optional number denoting the amount of budget available for the purchase
-    buy (shares: number): [boolean, number] {
+    buy (shares: number): number {
         return this.marketOrder(CONSTANTS.STOCKS.LONG_POSITION, shares);
     }
 
-    sell (shares: number): [boolean, number] {
-        return this.marketSell(CONSTANTS.STOCKS.SHORT_POSITION, shares);
+    sell (shares: number): number {
+        return this.marketSell(shares);
     }
 
-    short (shares: number): [boolean, number] {
+    short (shares: number): number {
         return this.marketOrder(CONSTANTS.STOCKS.SHORT_POSITION, shares);
     }
 
-    shortSell (shares: number): [boolean, number] {
-        return this.marketSell(CONSTANTS.STOCKS.SHORT_POSITION, shares);
+    shortSell (shares: number): number {
+        return this.marketSell(shares);
     }
 
     placeOrder() {
@@ -109,72 +109,76 @@ export class Stock {
     // Method returns [orderSuccess: boolean, orderCost: number]
     // orderSuccess will be false if the order fails for any reason
     // orderCost will be 0 if the order fails
-    marketOrder(positionType: string, shares: number): [boolean, number] {
+    marketOrder(positionType: string, shares: number): number {
         // If the shares number isn't valid, exit
         if (!this.isValidShares(shares)) {
             this.ns.print(this.ns.vsprintf("Error: Invalid number of shares to buy. Got %s", [shares]));
-            return [false, 0];
+            return 0;
         }
 
         // Make sure we have the latest stock data
         this.update();
 
-        let purchaseCost = this.TIX.getPurchaseCost(this.symbol, shares, positionType);
+        let purchaseCost = 0;
         
         // Make sure the position we are in matches the type of order we are trying to place
         if (this.position.type != positionType && this.position.type != CONSTANTS.STOCKS.NO_POSITION) {
             this.ns.print(this.ns.sprintf("Error: Trying to take %1$s position, but currently in %2$s position", 
                             positionType, this.position.type));
-            return [false, 0];
+            return 0;
         }
-
         if  (positionType == CONSTANTS.STOCKS.LONG_POSITION) {
-            this.TIX.buy(this.symbol, shares);
-            return [true, purchaseCost];
+            purchaseCost = this.TIX.buy(this.symbol, shares);
         }
         else if (positionType == CONSTANTS.STOCKS.SHORT_POSITION) {
-            this.TIX.short(this.symbol, shares);
-            return [true, purchaseCost];
+            purchaseCost = this.TIX.short(this.symbol, shares);
         }
         else {
             this.ns.print(this.ns.sprintf("Error: Invalid position. How did that happen?!"));
-            return [false, 0];
+            return 0;
         }
+
+        let total = purchaseCost * shares;
+
+        
+        return total;
 
     }
 
-    marketSell(positionType: string, shares: number): [boolean, number] {
+    marketSell(shares: number): number {
         // If the shares number isn't valid, exit
         if (!this.isValidShares(shares)) {
             this.ns.vsprintf("Error: Invalid number of shares to buy. Got %s", [shares]);
-            return [false, 0];
+            return 0;
         }
 
         // Make sure we have the latest stock data
         this.update();
-
-        let sellPrice = this.TIX.getSaleGain(this.symbol, shares, positionType);
+        
+        let sellPrice = 0;
         
         // Make sure the position we are in matches the type of order we are trying to place
         // Unlike buying, we need to be in a position to sell
-        if (this.position.type != positionType) {
-            this.ns.print(this.ns.sprintf("Error: Trying to sell in %1$s position, but currently in %2$s position", 
-                            positionType, this.position.type));
-            return [false, 0];
+        if (this.position.type == CONSTANTS.STOCKS.NO_POSITION) {
+            this.ns.print(this.ns.sprintf("Error: Trying to sell %1$s, but we don't own any.", 
+                            this.symbol));
+            return 0;
         }
-
-        if  (positionType == CONSTANTS.STOCKS.LONG_POSITION) {
-            this.TIX.sell(this.symbol, shares);
-            return [true, sellPrice];
+        if  (this.position.type == CONSTANTS.STOCKS.LONG_POSITION) {
+            sellPrice = this.TIX.sell(this.symbol, shares);
         }
-        else if (positionType == CONSTANTS.STOCKS.SHORT_POSITION) {
-            this.TIX.sellShort(this.symbol, shares);
-            return [true, sellPrice];
+        else if (this.position.type == CONSTANTS.STOCKS.SHORT_POSITION) {
+            sellPrice = this.TIX.sellShort(this.symbol, shares);
         }
         else {
             this.ns.print(this.ns.sprintf("Error: Invalid position. How did that happen?!"));
-            return [false, 0];
+            return 0;
         }
+
+        let total = sellPrice * shares;
+
+        // Detect if the sale was successful. Will be 0 if it failed.
+        return total;
     }
 
     private isValidOrdidType(orderType: string) {

@@ -24,9 +24,11 @@ export async function main(ns: NS) {
             AMOUNT
         }
 
-        const ADD       = 'add';
-        const WITHDRAW  = 'withdraw';
-        const LIST      = 'list';
+        const ADD           = 'add';
+        const WITHDRAW      = 'withdraw';
+        const LIST          = 'list';
+        const CLEAR_BUDGET  = 'clear';
+        const YOLO          = 'yolo';
 
         const STOCK_BUDGET= 'stock';
         //const COMMANDS = [ADD, WITHDRAW, LIST];
@@ -82,6 +84,12 @@ export async function main(ns: NS) {
             case LIST:
                 listBudgetData();
                 break;
+            case CLEAR_BUDGET:
+                clearBudget(BUDGET_NAME);
+                break;
+            case YOLO:
+                yolo(BUDGET_NAME);
+                break;
             default:
                 // If none of the commands match, it is invalid so throw an error
                 ns.tprint(ns.vsprintf("Error: command not valid, got %s", 
@@ -105,7 +113,7 @@ export async function main(ns: NS) {
 
         // A function to list our budget data
         function listBudgetData() {
-            BUDGET.updateCash(ns);
+            BUDGET.updateCash(ns.getPlayer());
 
             let infoString = ns.vsprintf(`
             Budget Info:
@@ -116,6 +124,24 @@ export async function main(ns: NS) {
             [BUDGET.CASH, BUDGET.STOCKS].map(FORMATTER.formatCurrency));
             
             ns.tprint(infoString);
+        }
+
+        function clearBudget(budgetName: string) {
+            if (budgetName == STOCK_BUDGET) {
+                BUDGET.clearStockBudget();
+            }
+            else {
+                ns.tprintf("Error: Budget %s not found.", budgetName);
+            }
+        }
+
+        function yolo(budgetName: string) {
+            if (budgetName == STOCK_BUDGET) {
+                BUDGET.stock_yolo(ns.getPlayer());
+            }
+            else {
+                ns.tprintf("Error: Budget %s not found.", budgetName);
+            }
         }
 
         // For calling when we have an argument error. Prints the usage info and exits.
@@ -131,7 +157,9 @@ export async function main(ns: NS) {
                 Expected: string
                 add - Add to the specified budget
                 withdraw - Withdraw from the specified budget
+                clear - Clear the specified budget
                 list - List all budget data
+                yolo - YOLO your money into the specified budget
 
                 arg[1]? - Budget
                 Optional

@@ -12,23 +12,6 @@ export async function main(ns: NS) {
             ns.tail();
         }
 
-        /* ARGUMENTS */
-        // I like to store my arguments as constants, so I need some regular variables for validating the arguments
-        // before assignment
-        let argument: string | number | boolean;
-        let isArgumentValid: boolean;
-
-        // arg[0] - Target Server //
-        // This is the server we want to hack. We can hack any server in the game, but only if our skill is high enough
-        // and we have root access.
-        [isArgumentValid, argument] = Argument.validateString(ns.args[0]);
-        if (!isArgumentValid) {
-            ns.tprint(ns.vsprintf("Error: arg[0] is invalid. Expected a string, but got %s", 
-                        [argument]));
-            argumentError();
-        }
-        const ARGUMENT = argument;
-
         // For calling when we have an argument error. Prints the usage info and exits.
         function argumentError() {
             usage();
@@ -57,6 +40,28 @@ export async function main(ns: NS) {
 
             ns.tprint(usage);
         }
+
+        // An enum for naming your arguments instead of just using integers
+        enum ARGS {
+            ARGUMENT_ONE
+        }
+
+        /* ARGUMENTS */
+        // I like to store my arguments as constants, so I need some regular variables for validating the arguments
+        // before assignment
+        let argument: string | number | boolean;
+        let isArgumentValid: boolean;
+
+        // arg[0] - Target Server //
+        // This is the server we want to hack. We can hack any server in the game, but only if our skill is high enough
+        // and we have root access.
+        [isArgumentValid, argument] = Argument.validateString(ns.args[ARGS.ARGUMENT_ONE]);
+        if (!isArgumentValid) {
+            ns.tprint(ns.vsprintf("Error: arg[0] is invalid. Expected a string, but got %s", 
+                        [argument]));
+            argumentError();
+        }
+        const ARGUMENT = argument;
     }
 
     // Run the function or it's useless

@@ -1,4 +1,4 @@
-import { NS } from "types/NetscriptDefinitions";
+import { NS, Player } from "types/NetscriptDefinitions";
 import { Formatter } from "js/common/formatter";
 
 export class BUDGET {
@@ -10,8 +10,7 @@ export class BUDGET {
         return BUDGET._CASH;
     }
     
-    static updateCash(ns: NS): void {
-        let player = ns.getPlayer();
+    static updateCash(player: Player ): void {
         BUDGET._CASH = player.money;
     }
 
@@ -21,14 +20,18 @@ export class BUDGET {
 
     // A method to add to our stock budget so we don't need to start a new trading bot every time we want to add funds
     static addToStockBudget(ns: NS, amount: number): boolean {
-        BUDGET.updateCash(ns);
-
         let formatter = new Formatter(ns);
+        let player = ns.getPlayer();
+        BUDGET.updateCash(player);
+
+        if (!BUDGET._STOCKS) {
+            BUDGET._STOCKS = 0;
+        }
         
         // Check if we have enough cash to add the amount to our budget
         // If we do, add it to our stock budget
         // If we don't print an error.
-        if (amount < BUDGET._CASH) {
+        if (amount < player.money) {
             ns.print(ns.vsprintf("Trying to add %s to budget of %s", 
             [amount, BUDGET._STOCKS].map(formatter.formatCurrency)));
             BUDGET._STOCKS += amount;
@@ -38,7 +41,7 @@ export class BUDGET {
         } 
         else {
             ns.print(ns.vsprintf("Error: Tried to add %s to budget, but only have %s.", 
-            [amount, BUDGET._CASH].map(formatter.formatCurrency)));
+            [amount, player.money].map(formatter.formatCurrency)));
             return false;
         }
     }
@@ -62,5 +65,10 @@ export class BUDGET {
 
     static clearStockBudget() {
         BUDGET._STOCKS = 0;
+    }
+
+    static stock_yolo(player: Player) {
+        BUDGET.updateCash(player);
+        BUDGET._STOCKS = player.money;
     }
 }

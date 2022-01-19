@@ -30,19 +30,23 @@ export async function main(ns: NS) : Promise<void> {
         let server: Server;
 
         // For checking avialble programs on the system
-		let hasNuke : boolean;
-		let hasAutoLink : boolean;
-		let hasBruteSSH : boolean;
-        let hasFTPCrack : boolean;
+		let hasNuke:        boolean;
+		let hasBruteSSH:    boolean;
+        let hasFTPCrack:    boolean;
+        let hasRelaySMTP:   boolean;
+        let hasHTTPWorm:    boolean;
+        let hasSQLInject:   boolean;
 
         function initialize() : void{
             server = ns.getServer(TARGET_SERVER);
 
             // Check which programs are available on this computer
-			hasNuke 	= ns.fileExists(PROGRAMS.NUKE, HOST_SERVER);
-			hasAutoLink = ns.fileExists(PROGRAMS.AUTO_LINK, HOST_SERVER);
-			hasBruteSSH = ns.fileExists(PROGRAMS.BRUTE_SSH, HOST_SERVER);
-            hasFTPCrack = ns.fileExists(PROGRAMS.FTP_CRACK, HOST_SERVER);
+			hasNuke 	    = ns.fileExists(PROGRAMS.NUKE,          HOST_SERVER);
+			hasBruteSSH     = ns.fileExists(PROGRAMS.BRUTE_SSH,     HOST_SERVER);
+            hasFTPCrack     = ns.fileExists(PROGRAMS.FTP_CRACK,     HOST_SERVER);
+            hasRelaySMTP    = ns.fileExists(PROGRAMS.RELAY_SMTP,    HOST_SERVER);
+            hasHTTPWorm     = ns.fileExists(PROGRAMS.HTTP_WORM,     HOST_SERVER);
+            hasSQLInject    = ns.fileExists(PROGRAMS.SQL_INJECT,    HOST_SERVER);
 
             // Open ports, even if we don't need to, just in case
             if (!server.sshPortOpen ) {
@@ -59,7 +63,34 @@ export async function main(ns: NS) : Promise<void> {
                     ns.ftpcrack(TARGET_SERVER);
                 }
                 else {
-                    ns.print("Error: Missing FTPCrack, cannot open SSH port.");
+                    ns.print("Error: Missing FTPCrack, cannot open FTP port.");
+                }
+            }
+                        
+            if (!server.smtpPortOpen) {
+                if (hasRelaySMTP) {
+                    ns.relaysmtp(TARGET_SERVER);
+                }
+                else {
+                    ns.print("Error: Missing FTPCrack, cannot open SMTP port.");
+                }
+            }
+                        
+            if (!server.httpPortOpen) {
+                if (hasHTTPWorm) {
+                    ns.httpworm(TARGET_SERVER);
+                }
+                else {
+                    ns.print("Error: Missing FTPCrack, cannot open HTTP port.");
+                }
+            }
+     
+            if (!server.sqlPortOpen) {
+                if (hasSQLInject) {
+                    ns.sqlinject(TARGET_SERVER);
+                }
+                else {
+                    ns.print("Error: Missing FTPCrack, cannot open SQL port.");
                 }
             }
 
