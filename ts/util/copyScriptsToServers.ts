@@ -1,5 +1,6 @@
 import { NS } from "types/NetscriptDefinitions";
 import { SCRIPTS   }   from "js/common/constants/scripts";
+import { CONSTANTS } from "js/common/constants/constants";
 
 
 // Once again I am dumb. You can't even copy programs to servers.
@@ -39,7 +40,9 @@ export async function main(ns: NS) {
 
             purchasedServers = ns.getPurchasedServers();
 
-            for (let script of SCRIPTS.all()) {
+            let homeScripts = ns.ls(CONSTANTS.HOME_SERVER, CONSTANTS.FILE_EXTENSIONS.NS2);
+
+            for (let script of homeScripts) {
                 if (ns.fileExists(script, HOST_SERVER)) {
                     filesToCopy.push(script);
                 }

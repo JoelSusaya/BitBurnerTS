@@ -1,3 +1,4 @@
+import { Formatter } from "js/common/formatter";
 import { NS } from "types/NetscriptDefinitions";
 
 export async function main(ns: NS) {
@@ -5,6 +6,7 @@ export async function main(ns: NS) {
     //ns.tail();
     // Function must be async
     async function purchaseServers() {
+        let FORMATTER = new Formatter(ns);
         let purchasedServerMaxRam = ns.getPurchasedServerMaxRam();
         let purchasedServerLimit = ns.getPurchasedServerLimit();
 
@@ -12,7 +14,7 @@ export async function main(ns: NS) {
 
         ns.tprint("Max RAM can purchase: " + purchasedServerMaxRam);
         ns.tprint("Total Servers: " + purchasedServers.length + " / " + purchasedServerLimit);
-        ns.tprint("Price of Max RAM server: " + ns.getPurchasedServerCost(purchasedServerMaxRam));
+        ns.tprint("Price of Max RAM server: " + FORMATTER.formatCurrency(ns.getPurchasedServerCost(purchasedServerMaxRam)));
         ns.tprint("Purchased Servers: " + purchasedServers);
 
         if(ns.args.length == 0) {
@@ -45,11 +47,11 @@ export async function main(ns: NS) {
                             };
                         }
                         else {
-                            ns.tprint("Error: args[2] not a string. Got " + ns.args[2].toString());
+                            ns.tprint("Error: args[2] not a string. Got " + ns.args[2]);
                         }
                     }
                     else {
-                        ns.tprint("Error: args[1] not a number. Got " + ns.args[1].toString());
+                        ns.tprint("Error: args[1] not a number. Got " + ns.args[1]);
                     }
                 }
             }
@@ -60,7 +62,7 @@ export async function main(ns: NS) {
                     if (typeof(ns.args[1]) == "number") {
                         let requestedRAM = Math.pow(2, ns.args[1]);
                         ns.tprint("Price of requested " + requestedRAM + " GB RAM server: " 
-                                + ns.getPurchasedServerCost(requestedRAM));
+                                + FORMATTER.formatCurrency(ns.getPurchasedServerCost(requestedRAM)));
                     }
                 }
             }

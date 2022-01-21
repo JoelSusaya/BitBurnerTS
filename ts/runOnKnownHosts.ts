@@ -57,7 +57,7 @@ export async function main(ns: NS) {
             for (let host of knownHosts) {
                 if (host != "") {
                     while ((ns.getServerUsedRam(HOST_SERVER) + ns.getScriptRam(SCRIPT_NAME, HOST_SERVER)) 
-                            > 0.9 * ns.getServerMaxRam(HOST_SERVER)) {
+                            > 0.98 * ns.getServerMaxRam(HOST_SERVER)) {
                         await ns.sleep(100);
                     }
                     ns.run(SCRIPT_NAME, THREADS, host);

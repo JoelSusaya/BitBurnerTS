@@ -127,7 +127,7 @@ export class TradeBot {
                     sharesToSell *= 1.05;
                     
                     // Sell the shares
-                    let sellPrice = worstPortfolioStock.marketSell(sharesToSell);
+                    let sellPrice = worstPortfolioStock.marketSell(sharesToSell) - CONSTANTS.STOCKS.COMMISSION_FEE;;
                     if (sellPrice != 0) {
                         let budgetSuccess = BUDGET.addToStockBudget(this.ns, sellPrice);
 
@@ -158,7 +158,7 @@ export class TradeBot {
                     break;
                 }
 
-                let buyPrice = stock.marketOrder(stock.forecastType, approxSharesCanBuy);
+                let buyPrice = stock.marketOrder(stock.forecastType, approxSharesCanBuy) - CONSTANTS.STOCKS.COMMISSION_FEE;;
                 
                 // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
                 if (buyPrice != 0) {
@@ -179,7 +179,7 @@ export class TradeBot {
                 [stock.symbol, stock.availableShares, stock.forecastType] ) );
             
             // Try to buy the stock
-            let buyPrice = stock.marketOrder(stock.forecastType, stock.availableShares);
+            let buyPrice = stock.marketOrder(stock.forecastType, stock.availableShares) - CONSTANTS.STOCKS.COMMISSION_FEE;;
 
             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
             if (buyPrice != 0) {
@@ -237,10 +237,11 @@ export class TradeBot {
             stock.update();
             
             // If we sell the stock, lower our porfolio value and add to our budget
+            // Make a sell threshold to avoid exiting a position from a 1% forecast dip
             let sellThreshold = this.forecastThreshold - 0.01;
             if (stock.forecastMagnitude < sellThreshold || stock.forecastType != stock.position.type) {
                 this.ns.print(this.ns.vsprintf("Selling %s", [stock.symbol]));
-                let sellPrice = stock.marketSell(stock.position.shares);
+                let sellPrice = stock.marketSell(stock.position.shares) - CONSTANTS.STOCKS.COMMISSION_FEE;
 
                 // If the sale worked, remove the stock from the portfolio and it it to our budget
                 //this.ns.print(this.ns.vsprintf("Sold %s, removing from portfolio. Portfolio size: %s", [stock.symbol, this.portfolio.length]));

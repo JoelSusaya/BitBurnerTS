@@ -2,6 +2,7 @@ import { NS } from "types/NetscriptDefinitions";
 import { Argument } from "js/common/argument";
 import { GLOBAL } from "js/common/global";
 import { CONSTANTS } from "js/common/constants/constants";
+import { Formatter } from "js/common/formatter";
 
 export async function main(ns: NS) {
     // Wrap the function to prevent anything from entering the global namespace (unless we want to add it)
@@ -14,6 +15,8 @@ export async function main(ns: NS) {
             ns.print("Debug mode is on.");
             ns.tail();
         }
+
+        const FORMATTER = new Formatter(ns);
 
         const HOST_INFO = CONSTANTS.DIRECTORIES.CRAWL_LOGS + CONSTANTS.TEXT_FILES.HOST_INFO;
 
@@ -43,7 +46,7 @@ export async function main(ns: NS) {
             let maxMoney = hostData[7];
 
             let debugReport = ns.sprintf("Host: %1$s, Admin: %2$s, Hack Skill: %3$s, Max Money: %4$s",
-            hostName, hasAdminRights, requiredHackingSkill, maxMoney);
+            hostName, hasAdminRights, requiredHackingSkill, FORMATTER.formatCurrency(maxMoney));
             ns.print(debugReport);
 
             // If we don't have admin rights or our hacking skill is too low, then go to the next host
