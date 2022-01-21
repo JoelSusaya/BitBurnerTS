@@ -158,7 +158,7 @@ export class TradeBot {
                     break;
                 }
 
-                let buyPrice = stock.marketOrder(stock.forecastType, approxSharesCanBuy) - CONSTANTS.STOCKS.COMMISSION_FEE;;
+                let buyPrice = stock.marketOrder(stock.forecastType, approxSharesCanBuy) + CONSTANTS.STOCKS.COMMISSION_FEE;;
                 
                 // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
                 if (buyPrice != 0) {
@@ -179,7 +179,7 @@ export class TradeBot {
                 [stock.symbol, stock.availableShares, stock.forecastType] ) );
             
             // Try to buy the stock
-            let buyPrice = stock.marketOrder(stock.forecastType, stock.availableShares) - CONSTANTS.STOCKS.COMMISSION_FEE;;
+            let buyPrice = stock.marketOrder(stock.forecastType, stock.availableShares) + CONSTANTS.STOCKS.COMMISSION_FEE;;
 
             // If we succeeded, add the stock to our profolio and subtract the buy price from our budget
             if (buyPrice != 0) {
